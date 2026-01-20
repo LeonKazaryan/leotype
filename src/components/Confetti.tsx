@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { TestSettings, TestState, TestStats, TestMode, Theme } from '../types'
+import { TestSettings, TestState, TestMode, Theme } from '../types'
 import { generateText } from '../utils/textGenerator'
 import { calculateStats } from '../utils/stats'
 
@@ -88,7 +88,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
   },
   
   startTest: () => {
-    const { settings, text } = get()
+    const { settings } = get()
     const startTime = Date.now()
     
     set({
