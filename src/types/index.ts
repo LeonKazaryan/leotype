@@ -9,6 +9,7 @@ export interface TestSettings {
   theme: Theme
   showKeyboard: boolean
   soundEnabled: boolean
+  useAI: boolean
 }
 
 export interface TestStats {

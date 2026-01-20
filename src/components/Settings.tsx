@@ -10,6 +10,7 @@ function Settings() {
   const setWords = useTypingStore((state) => state.setWords)
   const setTheme = useTypingStore((state) => state.setTheme)
   const toggleKeyboard = useTypingStore((state) => state.toggleKeyboard)
+  const toggleAI = useTypingStore((state) => state.toggleAI)
   const resetTest = useTypingStore((state) => state.resetTest)
   const generateNewText = useTypingStore((state) => state.generateNewText)
   
@@ -129,18 +130,32 @@ function Settings() {
             <label className={`block text-sm font-semibold mb-2 ${themeClasses.secondary}`}>
               Дополнительно
             </label>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleKeyboard}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                settings.showKeyboard
-                  ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                  : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-              }`}
-            >
-              {settings.showKeyboard ? 'Скрыть' : 'Показать'} клавиатуру
-            </motion.button>
+            <div className="flex gap-2 flex-wrap">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleKeyboard}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  settings.showKeyboard
+                    ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                    : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                }`}
+              >
+                {settings.showKeyboard ? 'Скрыть' : 'Показать'} клавиатуру
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleAI}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  settings.useAI
+                    ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                    : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                }`}
+              >
+                🤖 {settings.useAI ? 'AI включен' : 'AI выключен'}
+              </motion.button>
+            </div>
           </div>
           
           <div className="flex items-end gap-2">

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { TestSettings, TestState, TestMode, Theme } from '../types'
 import { generateText } from '../utils/textGenerator'
+import { generateTextWithAI } from '../utils/aiGenerator'
 import { calculateStats } from '../utils/stats'
 
 interface TypingStore {
@@ -14,6 +15,7 @@ interface TypingStore {
   setTheme: (theme: Theme) => void
   toggleKeyboard: () => void
   toggleSound: () => void
+  toggleAI: () => void
   
   startTest: () => void
   updateInput: (input: string) => void
@@ -30,6 +32,7 @@ const defaultSettings: TestSettings = {
   theme: 'dark',
   showKeyboard: false,
   soundEnabled: true,
+  useAI: false,
 }
 
 const defaultTestState: TestState = {
@@ -50,9 +53,21 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
   setMode: (mode) => {
     set((state) => {
       const newSettings = { ...state.settings, mode }
+      let newText = generateText(newSettings.mode, newSettings.words)
+      
+      if (newSettings.useAI) {
+        generateTextWithAI(newSettings.mode, newSettings.words)
+          .then((text) => {
+            set({ text })
+          })
+          .catch((error) => {
+            console.error('Failed to generate AI text, using fallback:', error)
+          })
+      }
+      
       return {
         settings: newSettings,
-        text: generateText(newSettings.mode, newSettings.words),
+        text: newText,
       }
     })
   },
@@ -64,9 +79,21 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
   setWords: (words) => {
     set((state) => {
       const newSettings = { ...state.settings, words }
+      let newText = generateText(newSettings.mode, words)
+      
+      if (newSettings.useAI) {
+        generateTextWithAI(newSettings.mode, words)
+          .then((text) => {
+            set({ text })
+          })
+          .catch((error) => {
+            console.error('Failed to generate AI text, using fallback:', error)
+          })
+      }
+      
       return {
         settings: newSettings,
-        text: generateText(newSettings.mode, words),
+        text: newText,
       }
     })
   },
@@ -84,6 +111,12 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
   toggleSound: () => {
     set((state) => ({
       settings: { ...state.settings, soundEnabled: !state.settings.soundEnabled },
+    }))
+  },
+  
+  toggleAI: () => {
+    set((state) => ({
+      settings: { ...state.settings, useAI: !state.settings.useAI },
     }))
   },
   
@@ -157,14 +190,38 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
   
   resetTest: () => {
     const { settings } = get()
+    let newText = generateText(settings.mode, settings.words)
+    
     set({
       testState: defaultTestState,
-      text: generateText(settings.mode, settings.words),
+      text: newText,
     })
+    
+    if (settings.useAI) {
+      generateTextWithAI(settings.mode, settings.words)
+        .then((text) => {
+          set({ text })
+        })
+        .catch((error) => {
+          console.error('Failed to generate AI text, using fallback:', error)
+        })
+    }
   },
   
   generateNewText: () => {
     const { settings } = get()
-    set({ text: generateText(settings.mode, settings.words) })
+    let newText = generateText(settings.mode, settings.words)
+    
+    set({ text: newText })
+    
+    if (settings.useAI) {
+      generateTextWithAI(settings.mode, settings.words)
+        .then((text) => {
+          set({ text })
+        })
+        .catch((error) => {
+          console.error('Failed to generate AI text, using fallback:', error)
+        })
+    }
   },
 }))
