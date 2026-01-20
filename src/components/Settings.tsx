@@ -28,153 +28,162 @@ function Settings() {
       transition={{ delay: 0.2 }}
       className={`rounded-2xl p-6 ${themeClasses.card} border ${themeClasses.border} shadow-xl`}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div>
-          <label className={`block text-sm font-semibold mb-2 ${themeClasses.secondary}`}>
-            Режим
-          </label>
-          <div className="flex gap-2">
-            {modes.map((mode) => (
-              <motion.button
-                key={mode}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setMode(mode)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  settings.mode === mode
-                    ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                    : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                }`}
-              >
-                {mode === 'time' ? 'Время' : mode === 'words' ? 'Слова' : 'Цитата'}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-        
-        {settings.mode === 'time' && (
-          <div>
-            <label className={`block text-sm font-semibold mb-2 ${themeClasses.secondary}`}>
-              Время (сек)
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="space-y-2">
+            <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
+              Режим
             </label>
             <div className="flex gap-2 flex-wrap">
-              {timeOptions.map((time) => (
+              {modes.map((mode) => (
                 <motion.button
-                  key={time}
+                  key={mode}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setTime(time)}
-                  className={`px-3 py-1 rounded-lg font-medium transition-colors ${
-                    settings.time === time
+                  onClick={() => setMode(mode)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                    settings.mode === mode
                       ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
                       : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
                   }`}
                 >
-                  {time}
+                  {mode === 'time' ? 'Время' : mode === 'words' ? 'Слова' : 'Цитата'}
                 </motion.button>
               ))}
-            </div>
-          </div>
-        )}
-        
-        {settings.mode === 'words' && (
-          <div>
-            <label className={`block text-sm font-semibold mb-2 ${themeClasses.secondary}`}>
-              Слов
-            </label>
-            <div className="flex gap-2 flex-wrap">
-              {wordOptions.map((words) => (
-                <motion.button
-                  key={words}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setWords(words)}
-                  className={`px-3 py-1 rounded-lg font-medium transition-colors ${
-                    settings.words === words
-                      ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                      : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                  }`}
-                >
-                  {words}
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        <div>
-          <label className={`block text-sm font-semibold mb-2 ${themeClasses.secondary}`}>
-            Тема
-          </label>
-          <div className="flex gap-2 flex-wrap">
-            {themes.map((theme) => (
-              <motion.button
-                key={theme}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setTheme(theme)}
-                className={`px-3 py-1 rounded-lg font-medium transition-colors capitalize ${
-                  settings.theme === theme
-                    ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                    : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                }`}
-              >
-                {theme}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-4">
-          <div>
-            <label className={`block text-sm font-semibold mb-2 ${themeClasses.secondary}`}>
-              Дополнительно
-            </label>
-            <div className="flex gap-2 flex-wrap">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleKeyboard}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  settings.showKeyboard
-                    ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                    : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                }`}
-              >
-                {settings.showKeyboard ? 'Скрыть' : 'Показать'} клавиатуру
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleAI}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  settings.useAI
-                    ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                    : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                }`}
-              >
-                🤖 {settings.useAI ? 'AI включен' : 'AI выключен'}
-              </motion.button>
             </div>
           </div>
           
-          <div className="flex items-end gap-2">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={generateNewText}
-              className={`px-4 py-2 rounded-lg font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors`}
-            >
-              Новый текст
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={resetTest}
-              className={`px-4 py-2 rounded-lg font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors`}
-            >
-              Сброс
-            </motion.button>
+          {settings.mode === 'time' && (
+            <div className="space-y-2">
+              <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
+                Время (сек)
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {timeOptions.map((time) => (
+                  <motion.button
+                    key={time}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setTime(time)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors min-w-[3rem] ${
+                      settings.time === time
+                        ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                        : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                    }`}
+                  >
+                    {time}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {settings.mode === 'words' && (
+            <div className="space-y-2">
+              <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
+                Слов
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {wordOptions.map((words) => (
+                  <motion.button
+                    key={words}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setWords(words)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors min-w-[3rem] ${
+                      settings.words === words
+                        ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                        : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                    }`}
+                  >
+                    {words}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
+              Тема
+            </label>
+            <div className="flex gap-2 flex-wrap">
+              {themes.map((theme) => (
+                <motion.button
+                  key={theme}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setTheme(theme)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${
+                    settings.theme === theme
+                      ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                      : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                  }`}
+                >
+                  {theme}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        <div className={`border-t pt-4 ${themeClasses.border} border-opacity-20`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
+                Дополнительно
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleKeyboard}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                    settings.showKeyboard
+                      ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                      : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                  }`}
+                >
+                  ⌨️ {settings.showKeyboard ? 'Скрыть' : 'Показать'}
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleAI}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                    settings.useAI
+                      ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                      : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                  }`}
+                >
+                  🤖 {settings.useAI ? 'Вкл' : 'Выкл'}
+                </motion.button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
+                Действия
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={generateNewText}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap`}
+                >
+                  Новый текст
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={resetTest}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap`}
+                >
+                  Сброс
+                </motion.button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
