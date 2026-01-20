@@ -18,24 +18,28 @@ function Stats() {
     {
       label: 'WPM',
       value: stats.wpm,
+      suffix: '',
       color: themeClasses.primary,
       icon: '⚡',
     },
     {
       label: 'Точность',
-      value: `${stats.accuracy}%`,
+      value: stats.accuracy,
+      suffix: '%',
       color: stats.accuracy >= 95 ? 'text-green-400' : stats.accuracy >= 80 ? 'text-yellow-400' : 'text-red-400',
       icon: '🎯',
     },
     {
       label: 'Время',
-      value: `${stats.time}с`,
+      value: stats.time,
+      suffix: 'с',
       color: themeClasses.secondary,
       icon: '⏱️',
     },
     {
       label: 'Символов',
       value: stats.characters.correct + stats.characters.incorrect,
+      suffix: '',
       color: themeClasses.secondary,
       icon: '⌨️',
     },
@@ -76,11 +80,8 @@ function Stats() {
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.9 + index * 0.1, type: 'spring', stiffness: 200 }}
               >
-                {typeof item.value === 'number' ? (
-                  <AnimatedNumber value={item.value} />
-                ) : (
-                  item.value
-                )}
+                <AnimatedNumber value={item.value} decimals={item.suffix === '%' ? 2 : 1} />
+                {item.suffix}
               </motion.div>
               <div className={`text-sm ${themeClasses.secondary}`}>
                 {item.label}

@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-gray-900 text-gray-100 font-mono antialiased;
-    font-family: 'JetBrains Mono', monospace;
-  }
+    body {
+        @apply bg-gray-900 text-gray-100 font-mono antialiased;
+        font-family: 'JetBrains Mono', monospace;
+    }
 }
 
 @layer utilities {
-  .text-shadow {
-    text-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
-  }
-  
-  .glow-text {
-    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
-  }
+    .text-shadow {
+        text-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+    }
+
+    .glow-text {
+        text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+    }
 }
