@@ -118,11 +118,17 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
     },
 
     startTest: () => {
-        const { settings } = get()
+        const { settings, testState } = get()
+        
+        if (testState.isGeneratingAI) {
+            return
+        }
+        
         const startTime = Date.now()
 
         set({
             testState: {
+                ...testState,
                 isActive: true,
                 isFinished: false,
                 currentIndex: 0,
@@ -146,7 +152,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
     updateInput: (input) => {
         const { testState, text, settings } = get()
 
-        if (!testState.isActive || testState.isFinished) return
+        if (!testState.isActive || testState.isFinished || testState.isGeneratingAI) return
 
         const newIndex = input.length
         const isComplete = newIndex >= text.length
@@ -186,12 +192,14 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
     },
 
     resetTest: () => {
-        const { settings } = get()
-        const newText = generateText(settings.mode, settings.words)
+        const { settings, testState } = get()
+        
+        if (testState.isGeneratingAI) {
+            return
+        }
 
         set({
             testState: { ...defaultTestState, isGeneratingAI: settings.useAI },
-            text: newText,
         })
 
         if (settings.useAI) {
@@ -216,15 +224,22 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                         })
                     }
                 })
+        } else {
+            const newText = generateText(settings.mode, settings.words)
+            set({
+                text: newText,
+            })
         }
     },
 
     generateNewText: () => {
-        const { settings } = get()
-        const newText = generateText(settings.mode, settings.words)
+        const { settings, testState } = get()
+        
+        if (testState.isGeneratingAI) {
+            return
+        }
 
         set({ 
-            text: newText,
             testState: { ...get().testState, isGeneratingAI: settings.useAI },
         })
 
@@ -250,6 +265,11 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                         })
                     }
                 })
+        } else {
+            const newText = generateText(settings.mode, settings.words)
+            set({ 
+                text: newText,
+            })
         }
     },
 }))

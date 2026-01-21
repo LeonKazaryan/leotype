@@ -15,6 +15,7 @@ function Settings() {
   const setAIDifficulty = useTypingStore((state) => state.setAIDifficulty)
   const resetTest = useTypingStore((state) => state.resetTest)
   const generateNewText = useTypingStore((state) => state.generateNewText)
+  const isGeneratingAI = useTypingStore((state) => state.testState.isGeneratingAI)
   
   const themeClasses = getThemeClasses(settings.theme)
   
@@ -247,20 +248,26 @@ function Settings() {
               </label>
               <div className="flex gap-2 flex-wrap">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
+                  whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
                   onClick={generateNewText}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap`}
+                  disabled={isGeneratingAI}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
+                    isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  Новый текст
+                  {isGeneratingAI ? '⏳ Генерация...' : 'Новый текст'}
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
+                  whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
                   onClick={resetTest}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap`}
+                  disabled={isGeneratingAI}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
+                    isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  Сброс
+                  {isGeneratingAI ? '⏳ Генерация...' : 'Сброс'}
                 </motion.button>
               </div>
             </div>
