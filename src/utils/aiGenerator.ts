@@ -1,63 +1,82 @@
 async function generateTextWithAI(
-  mode: 'time' | 'words' | 'quote',
-  count: number
+    mode: 'time' | 'words' | 'quote',
+    count: number,
+    topic: string = 'программирование',
+    difficulty: 'easy' | 'medium' | 'hard' = 'medium'
 ): Promise<string> {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY
-  
-  if (!apiKey) {
-    throw new Error('OpenAI API key not found')
-  }
-  
-  let prompt = ''
-  
-  if (mode === 'quote') {
-    prompt = 'Сгенерируй одну короткую мотивирующую цитату о программировании на русском языке. Только цитату, без кавычек и дополнительных слов.'
-  } else if (mode === 'words') {
-    prompt = `Сгенерируй список из ${count} случайных русских слов, связанных с программированием и разработкой. Слова должны быть разделены пробелами, без нумерации и дополнительных символов.`
-  } else {
-    prompt = `Сгенерируй текст из примерно ${count} слов на русском языке, связанный с программированием. Только текст, без заголовков и дополнительных слов.`
-  }
-  
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'Ты помощник для генерации текста для тренировки печати. Отвечай только запрошенным текстом, без дополнительных объяснений.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: mode === 'quote' ? 50 : count * 10,
-        temperature: 0.8,
-      }),
-    })
-    
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`)
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
+    try {
+        if (import.meta.env.DEV) {
+            console.log('Generating AI text with params:', { mode, count, topic, difficulty })
+        }
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 60000)
+
+        const response = await fetch(`${apiUrl}/api/generate-text`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                mode,
+                count,
+                topic: topic.trim() || 'программирование',
+                difficulty,
+            }),
+            signal: controller.signal,
+        }).finally(() => clearTimeout(timeoutId))
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`
+
+            if (response.status === 401) {
+                throw new Error('Invalid API key. Please check server configuration.')
+            }
+
+            if (response.status === 429) {
+                throw new Error(errorMessage)
+            }
+
+            if (response.status === 500) {
+                throw new Error(errorMessage || 'Server error. Please try again later.')
+            }
+
+            throw new Error(errorMessage)
+        }
+
+        const data = await response.json()
+        const generatedText = data.text?.trim()
+
+        if (!generatedText) {
+            throw new Error('No text generated')
+        }
+
+        if (import.meta.env.DEV) {
+            console.log('✅ Generated text:', generatedText)
+        }
+
+        return generatedText
+    } catch (error) {
+        if (error instanceof Error) {
+            if (error.name === 'AbortError') {
+                throw new Error('Request timeout. Please try again.')
+            }
+
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                throw new Error('Cannot connect to server. Make sure the backend is running on port 3001.')
+            }
+
+            if (import.meta.env.DEV) {
+                console.error('AI generation error:', error.message)
+            }
+            throw error
+        }
+
+        throw new Error('Unknown error occurred')
     }
-    
-    const data = await response.json()
-    const generatedText = data.choices[0]?.message?.content?.trim()
-    
-    if (!generatedText) {
-      throw new Error('No text generated')
-    }
-    
-    return generatedText
-  } catch (error) {
-    console.error('AI generation error:', error)
-    throw error
-  }
 }
 
 export { generateTextWithAI }

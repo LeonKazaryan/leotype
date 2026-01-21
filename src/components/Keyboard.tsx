@@ -57,6 +57,9 @@ function Keyboard() {
                   key={key}
                   animate={{
                     scale: isActive ? 1.1 : 1,
+                  }}
+                  transition={{ duration: 0.2 }}
+                  style={{
                     backgroundColor:
                       status === 'active'
                         ? 'rgba(14, 165, 233, 0.3)'
@@ -64,7 +67,6 @@ function Keyboard() {
                         ? 'rgba(34, 197, 94, 0.2)'
                         : 'transparent',
                   }}
-                  transition={{ duration: 0.2 }}
                   className={`w-10 h-10 flex items-center justify-center rounded-lg border-2 ${
                     isActive
                       ? `${themeClasses.border} ${themeClasses.accent} font-bold`

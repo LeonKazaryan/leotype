@@ -83,7 +83,23 @@ function TypingTest() {
       </div>
       
       <AnimatePresence>
-        {!testState.isActive && !testState.isFinished && (
+        {testState.isGeneratingAI && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={`text-center ${themeClasses.primary} text-lg flex items-center justify-center gap-2`}
+          >
+            <motion.span
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            >
+              ⏳
+            </motion.span>
+            Генерация текста через AI...
+          </motion.div>
+        )}
+        {!testState.isActive && !testState.isFinished && !testState.isGeneratingAI && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

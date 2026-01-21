@@ -2,6 +2,8 @@ export type TestMode = 'time' | 'words' | 'quote'
 
 export type Theme = 'dark' | 'light' | 'neon' | 'ocean' | 'forest'
 
+export type AIDifficulty = 'easy' | 'medium' | 'hard'
+
 export interface TestSettings {
   mode: TestMode
   time: number
@@ -10,6 +12,8 @@ export interface TestSettings {
   showKeyboard: boolean
   soundEnabled: boolean
   useAI: boolean
+  aiTopic: string
+  aiDifficulty: AIDifficulty
 }
 
 export interface TestStats {
@@ -32,4 +36,5 @@ export interface TestState {
   startTime: number | null
   endTime: number | null
   stats: TestStats | null
+  isGeneratingAI: boolean
 }

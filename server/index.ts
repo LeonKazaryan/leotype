@@ -1,0 +1,292 @@
+import express from 'express'
+import cors from 'cors'
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+dotenv.config({ path: join(__dirname, '../.env') })
+
+const app = express()
+const PORT = process.env.PORT || 3001
+
+app.use(cors())
+app.use(express.json())
+
+let lastRequestTime = 0
+const MIN_REQUEST_INTERVAL = 3000
+const requestQueue: Array<{
+    resolve: (value: string) => void
+    reject: (error: Error) => void
+    params: { mode: string; count: number; topic: string; difficulty: string }
+}> = []
+let isProcessingQueue = false
+
+async function checkAPIKey(): Promise<boolean> {
+    const apiKey = process.env.XAI_API_KEY
+
+    if (!apiKey) {
+        console.error('❌ XAI_API_KEY not found in .env file')
+        return false
+    }
+
+    if (!apiKey.startsWith('xai-')) {
+        console.error('❌ Invalid API key format. Should start with "xai-"')
+        return false
+    }
+
+    try {
+        const response = await fetch('https://api.x.ai/v1/models', {
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+            },
+        })
+
+        if (response.status === 401) {
+            console.error('❌ Invalid API key. Please check your XAI_API_KEY in .env')
+            return false
+        }
+
+        if (response.ok) {
+            console.log('✅ XAI API key is valid')
+            return true
+        }
+
+        console.warn(`⚠️ API key check returned status ${response.status}`)
+        return true
+    } catch (error) {
+        console.error('❌ Error checking API key:', error)
+        return false
+    }
+}
+
+async function makeXAIRequest(params: {
+    mode: string
+    count: number
+    topic: string
+    difficulty: string
+}): Promise<string> {
+    const { mode, count, topic, difficulty } = params
+    const apiKey = process.env.XAI_API_KEY
+
+    if (!apiKey) {
+        throw new Error('XAI API key not configured on server')
+    }
+
+    const difficultyMap: Record<string, string> = {
+        easy: 'простые и короткие слова, базовый уровень',
+        medium: 'средней сложности слова и фразы',
+        hard: 'сложные технические термины и длинные предложения',
+    }
+
+    const difficultyDesc = difficultyMap[difficulty] || difficultyMap.medium
+    const topicText = topic.trim() || 'программирование'
+
+    let prompt = ''
+
+    if (mode === 'quote') {
+        prompt = `Сгенерируй одну короткую мотивирующую цитату на тему "${topicText}" на русском языке. Сложность: ${difficultyDesc}. Только цитату, без кавычек и дополнительных слов.`
+    } else if (mode === 'words') {
+        prompt = `Сгенерируй список из ${count} случайных русских слов на тему "${topicText}". Сложность: ${difficultyDesc}. Слова должны быть разделены пробелами, без нумерации и дополнительных символов.`
+    } else {
+        prompt = `Сгенерируй связный текст из примерно ${count} слов на русском языке на тему "${topicText}". Сложность: ${difficultyDesc}. Только текст, без заголовков и дополнительных слов.`
+    }
+
+    const now = Date.now()
+    const timeSinceLastRequest = now - lastRequestTime
+
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest
+        console.log(`⏳ Waiting ${Math.ceil(waitTime / 1000)}s before request...`)
+        await new Promise(resolve => setTimeout(resolve, waitTime))
+    }
+
+    console.log(`📤 Sending request to XAI (Grok)...`)
+    const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+            model: 'grok-3',
+            messages: [
+                {
+                    role: 'system',
+                    content: 'Ты помощник для генерации текста для тренировки печати. Отвечай только запрошенным текстом, без дополнительных объяснений.',
+                },
+                {
+                    role: 'user',
+                    content: prompt,
+                },
+            ],
+            max_tokens: mode === 'quote' ? 50 : count * 10,
+            temperature: 0.8,
+            stream: false,
+        }),
+    })
+
+    lastRequestTime = Date.now()
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+
+        console.error(`❌ XAI API error: ${response.status} ${response.statusText}`)
+        console.error(`Error details:`, JSON.stringify(errorData, null, 2))
+
+        if (response.status === 401) {
+            throw new Error('Invalid API key. Please check your XAI_API_KEY in .env file.')
+        }
+
+        if (response.status === 429) {
+            const errorMessage = errorData.error?.message || ''
+            const errorCode = errorData.error?.code || ''
+            const retryAfter = response.headers.get('Retry-After')
+
+            console.log(`Rate limit details: code=${errorCode}, message=${errorMessage}, retryAfter=${retryAfter}`)
+
+            // Проверка на quota/billing ошибки
+            if (errorMessage.toLowerCase().includes('quota') ||
+                errorMessage.toLowerCase().includes('billing') ||
+                errorMessage.toLowerCase().includes('insufficient_quota') ||
+                errorCode === 'insufficient_quota') {
+                throw new Error(`API quota exceeded: ${errorMessage || errorCode}. Please check your XAI account billing.`)
+            }
+
+            let waitTime = 20000
+            if (retryAfter) {
+                waitTime = parseInt(retryAfter) * 1000
+            }
+
+            throw new Error(`Rate limit exceeded. Please wait ${Math.ceil(waitTime / 1000)} seconds and try again.`)
+        }
+
+        // Проверка на другие ошибки связанные с billing (может прийти с другим статусом)
+        const errorCode = errorData.error?.code || ''
+        const errorMessage = errorData.error?.message || ''
+
+        if (errorCode === 'insufficient_quota' ||
+            errorMessage.toLowerCase().includes('quota') ||
+            errorMessage.toLowerCase().includes('billing')) {
+            throw new Error(`API quota/billing issue: ${errorMessage || errorCode}. Please check your XAI account.`)
+        }
+
+        if (response.status === 404) {
+            if (errorMessage.includes('deprecated') || errorMessage.includes('model')) {
+                throw new Error(`Model error: ${errorMessage}`)
+            }
+            throw new Error(`XAI API error (404): ${errorMessage || response.statusText}`)
+        }
+
+        if (response.status === 500 || response.status === 502 || response.status === 503) {
+            throw new Error(`XAI service error (${response.status}): ${errorMessage || response.statusText}`)
+        }
+
+        throw new Error(`XAI API error (${response.status}): ${errorMessage || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.choices[0]?.message?.content?.trim()
+
+    if (!generatedText) {
+        console.error('❌ No text in response:', data)
+        throw new Error('No text generated')
+    }
+
+    console.log(`✅ Successfully generated ${generatedText.length} characters`)
+    return generatedText
+}
+
+async function processQueue() {
+    if (isProcessingQueue || requestQueue.length === 0) {
+        return
+    }
+
+    isProcessingQueue = true
+
+    while (requestQueue.length > 0) {
+        const request = requestQueue.shift()
+        if (!request) continue
+
+        try {
+            console.log(`📝 Processing request: ${request.params.topic} (${request.params.difficulty})`)
+            const result = await makeXAIRequest(request.params)
+            request.resolve(result)
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error(`❌ Request failed: ${error.message}`)
+                request.reject(error)
+            } else {
+                request.reject(new Error('Unknown error occurred'))
+            }
+        }
+    }
+
+    isProcessingQueue = false
+}
+
+app.post('/api/generate-text', async (req, res) => {
+    try {
+        const { mode, count, topic, difficulty } = req.body
+
+        if (!mode || typeof count !== 'number' || !topic || !difficulty) {
+            return res.status(400).json({ error: 'Invalid request parameters' })
+        }
+
+        const result = await new Promise<string>((resolve, reject) => {
+            requestQueue.push({ resolve, reject, params: { mode, count, topic, difficulty } })
+            processQueue()
+        })
+
+        res.json({ text: result })
+    } catch (error) {
+        if (error instanceof Error) {
+            let statusCode = 500
+            if (error.message.includes('Rate limit')) {
+                statusCode = 429
+            } else if (error.message.includes('Invalid API') || error.message.includes('API key')) {
+                statusCode = 401
+            } else if (error.message.includes('quota') || error.message.includes('billing')) {
+                statusCode = 402 // Payment Required
+            }
+
+            console.error(`❌ Error: ${error.message}`)
+            res.status(statusCode).json({ error: error.message })
+        } else {
+            res.status(500).json({ error: 'Unknown error occurred' })
+        }
+    }
+})
+
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Leotype API Server',
+        status: 'running',
+        endpoints: {
+            health: '/api/health',
+            generate: 'POST /api/generate-text'
+        }
+    })
+})
+
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        isProcessing: isProcessingQueue,
+        queueLength: requestQueue.length,
+        lastRequestTime: lastRequestTime ? new Date(lastRequestTime).toISOString() : null,
+        hasApiKey: !!process.env.XAI_API_KEY
+    })
+})
+
+app.listen(PORT, async () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`)
+    console.log(`📋 Queue system ready`)
+
+    const apiKeyValid = await checkAPIKey()
+    if (!apiKeyValid) {
+        console.log('⚠️  Server started but API key check failed. AI generation may not work.')
+    }
+})
