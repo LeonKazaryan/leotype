@@ -32,7 +32,7 @@ function Settings() {
       className={`rounded-2xl p-6 ${themeClasses.card} border ${themeClasses.border} shadow-xl`}
     >
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="space-y-2">
             <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
               Режим
@@ -105,28 +105,28 @@ function Settings() {
               </div>
             </div>
           )}
-          
-          <div className="space-y-2">
-            <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
-              Тема
-            </label>
-            <div className="flex gap-2 flex-wrap">
-              {themes.map((theme) => (
-                <motion.button
-                  key={theme}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setTheme(theme)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${
-                    settings.theme === theme
-                      ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                      : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                  }`}
-                >
-                  {theme}
-                </motion.button>
-              ))}
-            </div>
+        </div>
+        
+        <div className="space-y-2">
+          <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
+            Тема
+          </label>
+          <div className="flex gap-2 flex-wrap">
+            {themes.map((theme) => (
+              <motion.button
+                key={theme}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setTheme(theme)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${
+                  settings.theme === theme
+                    ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                    : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                }`}
+              >
+                {theme}
+              </motion.button>
+            ))}
           </div>
         </div>
         

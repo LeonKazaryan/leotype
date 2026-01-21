@@ -21,7 +21,7 @@ function TextDisplay({ text, getCharStatus, caretPosition }: TextDisplayProps) {
       case 'incorrect':
         return 'text-red-500'
       case 'current':
-        return `${themeClasses.accent} underline`
+        return themeClasses.secondary
       default:
         return themeClasses.secondary
     }
@@ -42,7 +42,7 @@ function TextDisplay({ text, getCharStatus, caretPosition }: TextDisplayProps) {
               key={index}
               initial={false}
               animate={{
-                scale: status === 'current' ? 1.15 : status === 'incorrect' ? [1, 1.1, 1] : status === 'correct' ? [1, 1.05, 1] : 1,
+                scale: status === 'incorrect' ? [1, 1.1, 1] : status === 'correct' ? [1, 1.05, 1] : 1,
                 x: status === 'incorrect' ? [0, -3, 3, -3, 3, 0] : 0,
               }}
               transition={{

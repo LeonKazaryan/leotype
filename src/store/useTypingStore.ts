@@ -28,14 +28,14 @@ interface TypingStore {
 }
 
 const defaultSettings: TestSettings = {
-    mode: 'time',
+    mode: 'words',
     time: 30,
     words: 50,
     theme: 'dark',
     showKeyboard: false,
     soundEnabled: true,
     useAI: false,
-    aiTopic: 'программирование',
+    aiTopic: '',
     aiDifficulty: 'medium',
 }
 
