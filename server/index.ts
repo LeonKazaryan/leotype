@@ -22,7 +22,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(
     cors({
-        origin: (origin, callback) => {
+        origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
             if (!origin || allowedOrigins.includes(origin)) {
                 callback(null, true)
             } else if (process.env.NODE_ENV === 'production') {
@@ -259,7 +259,7 @@ async function processQueue() {
     isProcessingQueue = false
 }
 
-app.post('/api/generate-text', async (req, res) => {
+app.post('/api/generate-text', async (req: express.Request, res: express.Response) => {
     try {
         const { mode, count, topic, difficulty } = req.body
 
@@ -292,7 +292,7 @@ app.post('/api/generate-text', async (req, res) => {
     }
 })
 
-app.get('/', (req, res) => {
+app.get('/', (req: express.Request, res: express.Response) => {
     res.json({
         message: 'Leotype API Server',
         status: 'running',
@@ -303,7 +303,7 @@ app.get('/', (req, res) => {
     })
 })
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: express.Request, res: express.Response) => {
     res.json({
         status: 'ok',
         isProcessing: isProcessingQueue,
