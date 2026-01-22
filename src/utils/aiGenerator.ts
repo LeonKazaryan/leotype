@@ -4,7 +4,8 @@ async function generateTextWithAI(
     topic: string = 'программирование',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
 ): Promise<string> {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    const apiUrl = import.meta.env.VITE_API_URL || 
+        (import.meta.env.PROD ? '' : 'http://localhost:3001')
 
     try {
         if (import.meta.env.DEV) {

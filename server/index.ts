@@ -7,12 +7,33 @@ import { dirname, join } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-dotenv.config({ path: join(__dirname, '../.env') })
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config({ path: join(__dirname, '../.env') })
+} else {
+    dotenv.config()
+}
 
 const app = express()
 const PORT = process.env.PORT || 3001
 
-app.use(cors())
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
+    : ['http://localhost:5173', 'http://localhost:3000']
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true)
+            } else if (process.env.NODE_ENV === 'production') {
+                callback(new Error('Not allowed by CORS'))
+            } else {
+                callback(null, true)
+            }
+        },
+        credentials: true,
+    })
+)
 app.use(express.json())
 
 let lastRequestTime = 0
@@ -131,7 +152,12 @@ async function makeXAIRequest(params: {
     lastRequestTime = Date.now()
 
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
+        const errorData = (await response.json().catch(() => ({}))) as {
+            error?: {
+                message?: string
+                code?: string
+            }
+        }
 
         console.error(`❌ XAI API error: ${response.status} ${response.statusText}`)
         console.error(`Error details:`, JSON.stringify(errorData, null, 2))
@@ -187,8 +213,14 @@ async function makeXAIRequest(params: {
         throw new Error(`XAI API error (${response.status}): ${errorMessage || response.statusText}`)
     }
 
-    const data = await response.json()
-    const generatedText = data.choices[0]?.message?.content?.trim()
+    const data = (await response.json()) as {
+        choices?: Array<{
+            message?: {
+                content?: string
+            }
+        }>
+    }
+    const generatedText = data.choices?.[0]?.message?.content?.trim()
 
     if (!generatedText) {
         console.error('❌ No text in response:', data)

@@ -9,7 +9,9 @@
     "strict": true,
     "resolveJsonModule": true,
     "outDir": "./dist",
-    "rootDir": "./"
+    "rootDir": "./",
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
