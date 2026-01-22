@@ -58,15 +58,9 @@ function Timer() {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <motion.div
-          className={`text-3xl font-bold ${themeClasses.primary}`}
-          key={timeElapsed}
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className={`text-3xl font-bold ${themeClasses.primary}`}>
           {formatTime(timeElapsed)}
-        </motion.div>
+        </div>
         
         {settings.mode === 'time' && (
           <div className={`text-lg ${themeClasses.secondary}`}>

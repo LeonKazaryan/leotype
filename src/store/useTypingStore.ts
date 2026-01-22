@@ -30,7 +30,7 @@ interface TypingStore {
 const defaultSettings: TestSettings = {
     mode: 'words',
     time: 30,
-    words: 50,
+    words: 25,
     theme: 'dark',
     showKeyboard: false,
     soundEnabled: true,
@@ -157,11 +157,6 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         const newIndex = input.length
         const isComplete = newIndex >= text.length
 
-        if (settings.mode === 'words' && isComplete) {
-            get().finishTest()
-            return
-        }
-
         set((state) => ({
             testState: {
                 ...state.testState,
@@ -169,6 +164,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 currentIndex: newIndex,
             },
         }))
+
+        if (settings.mode === 'words' && isComplete) {
+            get().finishTest()
+        }
     },
 
     finishTest: () => {
