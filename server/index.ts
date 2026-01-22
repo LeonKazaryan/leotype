@@ -20,18 +20,36 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
     : ['http://localhost:5173', 'http://localhost:3000']
 
+console.log('🌐 Allowed origins:', allowedOrigins)
+console.log('🌐 NODE_ENV:', process.env.NODE_ENV)
+
 app.use(
     cors({
         origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-            if (!origin || allowedOrigins.includes(origin)) {
-                callback(null, true)
-            } else if (process.env.NODE_ENV === 'production') {
-                callback(new Error('Not allowed by CORS'))
-            } else {
-                callback(null, true)
+            if (!origin) {
+                console.log('⚠️  Request without origin, allowing')
+                return callback(null, true)
             }
+
+            console.log('🔍 Checking origin:', origin)
+            console.log('🔍 Allowed origins:', allowedOrigins)
+
+            if (allowedOrigins.includes(origin)) {
+                console.log('✅ Origin allowed:', origin)
+                return callback(null, true)
+            }
+
+            if (process.env.NODE_ENV === 'production') {
+                console.log('❌ Origin not allowed in production:', origin)
+                return callback(new Error(`Not allowed by CORS: ${origin}`))
+            }
+
+            console.log('⚠️  Origin not in list but allowing (dev mode):', origin)
+            return callback(null, true)
         },
         credentials: true,
+        methods: ['GET', 'POST', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
     })
 )
 app.use(express.json())
