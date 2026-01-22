@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { TestMode, Theme, AIDifficulty } from '../types'
 import { getThemeClasses } from '../utils/themes'
@@ -130,83 +130,73 @@ function Settings() {
           </div>
         </div>
         
-        <AnimatePresence>
-          {settings.useAI && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`border-t pt-4 ${themeClasses.border} border-opacity-20 overflow-hidden`}
-            >
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🤖</span>
-                  <h3 className={`text-base font-semibold ${themeClasses.primary}`}>
-                    Настройки AI
-                  </h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className={`block text-sm font-medium ${themeClasses.secondary}`}>
-                      Тематика
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.aiTopic}
-                      onChange={(e) => setAITopic(e.target.value)}
-                      placeholder="Например: программирование, наука, история..."
-                      className={`w-full px-3 py-2 rounded-lg text-sm ${themeClasses.card} border-2 ${themeClasses.border} ${themeClasses.secondary} bg-transparent focus:outline-none focus:border-opacity-100 focus:${themeClasses.accent} transition-all placeholder:opacity-50`}
-                    />
-                    <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
-                      Укажите тему для генерации текста
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className={`block text-sm font-medium ${themeClasses.secondary}`}>
-                      Сложность
-                    </label>
-                    <div className="flex gap-2 flex-wrap">
-                      {(['easy', 'medium', 'hard'] as AIDifficulty[]).map((difficulty) => {
-                        const labels = {
-                          easy: { text: 'Легкая', icon: '🟢' },
-                          medium: { text: 'Средняя', icon: '🟡' },
-                          hard: { text: 'Сложная', icon: '🔴' },
-                        }
-                        const label = labels[difficulty]
-                        
-                        return (
-                          <motion.button
-                            key={difficulty}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setAIDifficulty(difficulty)}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                              settings.aiDifficulty === difficulty
-                                ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                                : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                            }`}
-                          >
-                            {label.icon} {label.text}
-                          </motion.button>
-                        )
-                      })}
-                    </div>
-                    <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
-                      Выберите уровень сложности текста
-                    </p>
-                  </div>
-                </div>
-                
-                <div className={`text-xs ${themeClasses.secondary} opacity-70 text-center pt-2 border-t ${themeClasses.border} border-opacity-20`}>
-                  💡 Настройки применяются при нажатии "Новый текст" или "Сброс"
-                </div>
+        <div className={`border-t pt-4 ${themeClasses.border} border-opacity-20`}>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🤖</span>
+              <h3 className={`text-base font-semibold ${themeClasses.primary}`}>
+                Настройки AI
+              </h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className={`block text-sm font-medium ${themeClasses.secondary}`}>
+                  Тематика
+                </label>
+                <input
+                  type="text"
+                  value={settings.aiTopic}
+                  onChange={(e) => setAITopic(e.target.value)}
+                  placeholder="Например: программирование, наука, история..."
+                  className={`w-full px-3 py-2 rounded-lg text-sm ${themeClasses.card} border-2 ${themeClasses.border} ${themeClasses.secondary} bg-transparent focus:outline-none focus:border-opacity-100 focus:${themeClasses.accent} transition-all placeholder:opacity-50`}
+                />
+                <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
+                  Укажите тему для генерации текста
+                </p>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              
+              <div className="space-y-2">
+                <label className={`block text-sm font-medium ${themeClasses.secondary}`}>
+                  Сложность
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {(['easy', 'medium', 'hard'] as AIDifficulty[]).map((difficulty) => {
+                    const labels = {
+                      easy: { text: 'Легкая', icon: '🟢' },
+                      medium: { text: 'Средняя', icon: '🟡' },
+                      hard: { text: 'Сложная', icon: '🔴' },
+                    }
+                    const label = labels[difficulty]
+                    
+                    return (
+                      <motion.button
+                        key={difficulty}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setAIDifficulty(difficulty)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                          settings.aiDifficulty === difficulty
+                            ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                            : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                        }`}
+                      >
+                        {label.icon} {label.text}
+                      </motion.button>
+                    )
+                  })}
+                </div>
+                <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
+                  Выберите уровень сложности текста
+                </p>
+              </div>
+            </div>
+            
+            <div className={`text-xs ${themeClasses.secondary} opacity-70 text-center pt-2 border-t ${themeClasses.border} border-opacity-20`}>
+              💡 Настройки применяются при нажатии "Новый текст" или "Сброс"
+            </div>
+          </div>
+        </div>
         
         <div className={`border-t pt-4 ${themeClasses.border} border-opacity-20`}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

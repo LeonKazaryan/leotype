@@ -8,6 +8,7 @@ interface TypingStore {
     settings: TestSettings
     testState: TestState
     text: string
+    showGame: boolean
 
     setMode: (mode: TestMode) => void
     setTime: (time: number) => void
@@ -25,6 +26,7 @@ interface TypingStore {
     resetTest: () => void
 
     generateNewText: () => void
+    goToSettings: () => void
 }
 
 const defaultSettings: TestSettings = {
@@ -54,6 +56,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
     settings: defaultSettings,
     testState: defaultTestState,
     text: generateText(defaultSettings.mode, defaultSettings.words),
+    showGame: false,
 
     setMode: (mode) => {
         set((state) => {
@@ -240,6 +243,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
         set({ 
             testState: { ...defaultTestState, isGeneratingAI: settings.useAI },
+            showGame: true,
         })
 
         if (settings.useAI) {
@@ -270,5 +274,12 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 text: newText,
             })
         }
+    },
+
+    goToSettings: () => {
+        set({ 
+            showGame: false,
+            testState: defaultTestState,
+        })
     },
 }))

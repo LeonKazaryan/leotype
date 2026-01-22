@@ -6,6 +6,7 @@ import { getThemeClasses } from '../utils/themes'
 function Timer() {
   const testState = useTypingStore((state) => state.testState)
   const settings = useTypingStore((state) => state.settings)
+  const goToSettings = useTypingStore((state) => state.goToSettings)
   const [timeElapsed, setTimeElapsed] = useState(0)
   const themeClasses = getThemeClasses(settings.theme)
   
@@ -56,7 +57,7 @@ function Timer() {
   const progress = getProgress()
   
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 relative">
       <div className="flex items-center justify-between">
         <div className={`text-3xl font-bold ${themeClasses.primary}`}>
           {formatTime(timeElapsed)}
@@ -67,6 +68,18 @@ function Timer() {
             / {settings.time}с
           </div>
         )}
+      </div>
+      
+      <div className="flex items-center justify-end relative">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={goToSettings}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium ${themeClasses.secondary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors`}
+          title="Вернуться в меню"
+        >
+          ← Меню
+        </motion.button>
       </div>
       
       <div className={`h-2 rounded-full overflow-hidden ${themeClasses.bg} border ${themeClasses.border}`}>

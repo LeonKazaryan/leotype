@@ -12,6 +12,8 @@ function TypingTest() {
   const startTest = useTypingStore((state) => state.startTest)
   const updateInput = useTypingStore((state) => state.updateInput)
   const finishTest = useTypingStore((state) => state.finishTest)
+  const generateNewText = useTypingStore((state) => state.generateNewText)
+  const goToSettings = useTypingStore((state) => state.goToSettings)
   
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [caretPosition, setCaretPosition] = useState(0)
@@ -129,6 +131,34 @@ function TypingTest() {
             className={`text-center ${themeClasses.secondary} text-lg`}
           >
             Начните печатать, чтобы начать тест
+          </motion.div>
+        )}
+        {testState.isFinished && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mt-6 flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={goToSettings}
+              className={`px-6 py-3 rounded-lg font-medium ${themeClasses.secondary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors`}
+            >
+              ← Назад к настройкам
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={generateNewText}
+              disabled={testState.isGeneratingAI}
+              className={`px-6 py-3 rounded-lg font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors ${
+                testState.isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {testState.isGeneratingAI ? '⏳ Генерация...' : '🔄 Новая игра'}
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>

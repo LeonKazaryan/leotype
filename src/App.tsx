@@ -11,6 +11,7 @@ import { getThemeClasses } from './utils/themes'
 
 function App() {
   const theme = useTypingStore((state) => state.settings.theme)
+  const showGame = useTypingStore((state) => state.showGame)
   const themeClasses = getThemeClasses(theme)
   
   useEffect(() => {
@@ -24,10 +25,15 @@ function App() {
       <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         <Header />
         <div className="mt-8 space-y-6">
-          <Settings />
-          <TypingTest />
-          <Keyboard />
-          <Stats />
+          {!showGame ? (
+            <Settings />
+          ) : (
+            <>
+              <TypingTest />
+              <Keyboard />
+              <Stats />
+            </>
+          )}
         </div>
       </div>
     </div>
