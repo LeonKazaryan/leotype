@@ -21,7 +21,7 @@ function Settings() {
   
   const modes: TestMode[] = ['time', 'words', 'quote']
   const themes: Theme[] = ['dark', 'light', 'neon', 'ocean', 'forest']
-  const timeOptions = [15, 30, 60, 120]
+  const timeOptions = [10, 15, 25, 30, 60]
   const wordOptions = [15, 20, 25, 50]
   
   return (
