@@ -240,7 +240,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         }
 
         set({ 
-            testState: { ...get().testState, isGeneratingAI: settings.useAI },
+            testState: { ...defaultTestState, isGeneratingAI: settings.useAI },
         })
 
         if (settings.useAI) {

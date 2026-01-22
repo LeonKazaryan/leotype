@@ -23,14 +23,14 @@ function TypingTest() {
     }
   }, [testState.isActive, testState.isFinished])
   
+  const isLetter = (char: string): boolean => {
+    return /^[а-яёА-ЯЁa-zA-Z]$/.test(char)
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (testState.isFinished || testState.isGeneratingAI) {
       e.preventDefault()
       return
-    }
-    
-    if (!testState.isActive && e.key !== 'Tab' && e.key !== 'Escape') {
-      startTest()
     }
     
     if (e.key === 'Escape') {
@@ -40,6 +40,14 @@ function TypingTest() {
   
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
+    
+    if (!testState.isActive && value.length > 0) {
+      const lastChar = value[value.length - 1]
+      if (isLetter(lastChar)) {
+        startTest()
+      }
+    }
+    
     setCaretPosition(value.length)
     updateInput(value)
   }
