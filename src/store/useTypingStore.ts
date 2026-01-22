@@ -202,7 +202,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
         // Автоматически включаем AI, если введена тематика
         const shouldUseAI = settings.useAI || !!(settings.aiTopic && settings.aiTopic.trim().length > 0)
-        const updatedSettings = shouldUseAI && !settings.useAI 
+        const updatedSettings = shouldUseAI && !settings.useAI
             ? { ...settings, useAI: true }
             : settings
 
@@ -213,19 +213,19 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
         if (shouldUseAI) {
             // Для режима времени вычисляем количество слов на основе времени (примерно 2.5 слова в секунду)
-            const wordCount = updatedSettings.mode === 'time' 
-                ? Math.ceil(updatedSettings.time * 2.5) 
+            const wordCount = updatedSettings.mode === 'time'
+                ? Math.ceil(updatedSettings.time * 2.5)
                 : updatedSettings.words
-            
+
             if (import.meta.env.DEV) {
-                console.log('Generating AI text (resetTest):', { 
-                    mode: updatedSettings.mode, 
-                    wordCount, 
-                    topic: updatedSettings.aiTopic, 
-                    difficulty: updatedSettings.aiDifficulty 
+                console.log('Generating AI text (resetTest):', {
+                    mode: updatedSettings.mode,
+                    wordCount,
+                    topic: updatedSettings.aiTopic,
+                    difficulty: updatedSettings.aiDifficulty
                 })
             }
-            
+
             generateTextWithAI(updatedSettings.mode, wordCount, updatedSettings.aiTopic, updatedSettings.aiDifficulty)
                 .then((text) => {
                     if (import.meta.env.DEV) {
@@ -254,8 +254,8 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                     }
                 })
         } else {
-            const wordCount = updatedSettings.mode === 'time' 
-                ? Math.ceil(updatedSettings.time * 2.5) 
+            const wordCount = updatedSettings.mode === 'time'
+                ? Math.ceil(updatedSettings.time * 2.5)
                 : updatedSettings.words
             const newText = generateText(updatedSettings.mode, wordCount)
             set({
@@ -273,7 +273,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
         // Автоматически включаем AI, если введена тематика
         const shouldUseAI = settings.useAI || !!(settings.aiTopic && settings.aiTopic.trim().length > 0)
-        const updatedSettings = shouldUseAI && !settings.useAI 
+        const updatedSettings = shouldUseAI && !settings.useAI
             ? { ...settings, useAI: true }
             : settings
 
@@ -285,19 +285,19 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
         if (shouldUseAI) {
             // Для режима времени вычисляем количество слов на основе времени (примерно 2.5 слова в секунду)
-            const wordCount = updatedSettings.mode === 'time' 
-                ? Math.ceil(updatedSettings.time * 2.5) 
+            const wordCount = updatedSettings.mode === 'time'
+                ? Math.ceil(updatedSettings.time * 2.5)
                 : updatedSettings.words
-            
+
             if (import.meta.env.DEV) {
-                console.log('Generating AI text (generateNewText):', { 
-                    mode: updatedSettings.mode, 
-                    wordCount, 
-                    topic: updatedSettings.aiTopic, 
-                    difficulty: updatedSettings.aiDifficulty 
+                console.log('Generating AI text (generateNewText):', {
+                    mode: updatedSettings.mode,
+                    wordCount,
+                    topic: updatedSettings.aiTopic,
+                    difficulty: updatedSettings.aiDifficulty
                 })
             }
-            
+
             generateTextWithAI(updatedSettings.mode, wordCount, updatedSettings.aiTopic, updatedSettings.aiDifficulty)
                 .then((text) => {
                     if (import.meta.env.DEV) {
@@ -311,8 +311,8 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 .catch((error) => {
                     if (error instanceof Error && error.message !== 'Request was cancelled') {
                         console.error('❌ Failed to generate AI text, using fallback:', error)
-                        const fallbackWordCount = updatedSettings.mode === 'time' 
-                            ? Math.ceil(updatedSettings.time * 2.5) 
+                        const fallbackWordCount = updatedSettings.mode === 'time'
+                            ? Math.ceil(updatedSettings.time * 2.5)
                             : updatedSettings.words
                         const fallbackText = generateText(updatedSettings.mode, fallbackWordCount)
                         set({
@@ -326,8 +326,8 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                     }
                 })
         } else {
-            const wordCount = updatedSettings.mode === 'time' 
-                ? Math.ceil(updatedSettings.time * 2.5) 
+            const wordCount = updatedSettings.mode === 'time'
+                ? Math.ceil(updatedSettings.time * 2.5)
                 : updatedSettings.words
             const newText = generateText(updatedSettings.mode, wordCount)
             set({
