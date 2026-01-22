@@ -22,7 +22,7 @@ function Settings() {
   const modes: TestMode[] = ['time', 'words', 'quote']
   const themes: Theme[] = ['dark', 'light', 'neon', 'ocean', 'forest']
   const timeOptions = [15, 30, 60, 120]
-  const wordOptions = [10, 25, 50, 100]
+  const wordOptions = [15, 20, 25, 50]
   
   return (
     <motion.div

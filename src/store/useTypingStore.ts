@@ -32,7 +32,7 @@ interface TypingStore {
 const defaultSettings: TestSettings = {
     mode: 'words',
     time: 30,
-    words: 25,
+    words: 20,
     theme: 'dark',
     showKeyboard: false,
     soundEnabled: true,
