@@ -25,8 +25,8 @@ function TypingTest() {
     }
   }, [testState.isActive, testState.isFinished])
   
-  const isLetter = (char: string): boolean => {
-    return /^[а-яёА-ЯЁa-zA-Z]$/.test(char)
+  const isPrintableKey = (key: string): boolean => {
+    return key.length === 1
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -45,7 +45,7 @@ function TypingTest() {
     
     if (!testState.isActive && value.length > 0) {
       const lastChar = value[value.length - 1]
-      if (isLetter(lastChar)) {
+      if (isPrintableKey(lastChar)) {
         startTest()
       }
     }
@@ -53,6 +53,42 @@ function TypingTest() {
     setCaretPosition(value.length)
     updateInput(value)
   }
+
+  useEffect(() => {
+    const handleWindowKeyDown = (e: KeyboardEvent) => {
+      if (testState.isFinished || testState.isGeneratingAI) return
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.key === 'Tab' || e.key === 'Enter') return
+      if (!isPrintableKey(e.key)) return
+
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return
+      }
+
+      if (!inputRef.current) return
+      if (document.activeElement === inputRef.current) return
+
+      inputRef.current.focus()
+      e.preventDefault()
+      const nextValue = testState.userInput + e.key
+      if (!testState.isActive) {
+        startTest()
+      }
+      setCaretPosition(nextValue.length)
+      updateInput(nextValue)
+    }
+
+    window.addEventListener('keydown', handleWindowKeyDown)
+    return () => window.removeEventListener('keydown', handleWindowKeyDown)
+  }, [
+    testState.isFinished,
+    testState.isGeneratingAI,
+    testState.isActive,
+    testState.userInput,
+    startTest,
+    updateInput,
+  ])
   
   const getCharStatus = (index: number): 'correct' | 'incorrect' | 'pending' | 'current' => {
     if (index < testState.userInput.length) {
