@@ -33,61 +33,65 @@ function TextDisplay({ text, getCharStatus, caretPosition }: TextDisplayProps) {
         className={`text-2xl leading-relaxed font-mono break-words ${themeClasses.secondary} select-none`}
         style={{ wordSpacing: '0.5em' }}
       >
-        {chars.map((char, index) => {
-          const status = getCharStatus(index)
-          const isSpace = char === ' '
-          
-          return (
-            <motion.span
-              key={index}
-              initial={false}
-              animate={{
-                scale: status === 'incorrect' ? [1, 1.1, 1] : status === 'correct' ? [1, 1.05, 1] : 1,
-                x: status === 'incorrect' ? [0, -3, 3, -3, 3, 0] : 0,
-              }}
-              transition={{
-                duration: status === 'incorrect' ? 0.3 : 0.15,
-                type: 'spring',
-                stiffness: 300,
-              }}
-              className={`${getCharColor(status)} ${
-                status === 'current' ? 'relative' : ''
-              } ${isSpace ? 'inline-block w-2' : ''} ${
-                status === 'correct' ? 'transition-all duration-200' : ''
-              }`}
-            >
-              {char === ' ' ? '\u00A0' : char}
-              {status === 'current' && (
+        <span className="inline-flex flex-wrap items-baseline gap-0">
+          {chars.map((char, index) => {
+            const status = getCharStatus(index)
+            const isSpace = char === ' '
+            
+            return (
+              <motion.span
+                key={index}
+                initial={false}
+                animate={{
+                  scale: status === 'incorrect' ? [1, 1.1, 1] : status === 'correct' ? [1, 1.05, 1] : 1,
+                  x: status === 'incorrect' ? [0, -3, 3, -3, 3, 0] : 0,
+                }}
+                transition={{
+                  duration: status === 'incorrect' ? 0.3 : 0.15,
+                  type: 'spring',
+                  stiffness: 300,
+                }}
+                className={`${getCharColor(status)} ${
+                  status === 'current' ? 'relative' : ''
+                } ${isSpace ? 'inline-block w-2' : ''} ${
+                  status === 'correct' ? 'transition-all duration-200' : ''
+                }`}
+              >
+                {char === ' ' ? '\u00A0' : char}
+                {status === 'current' && (
                 <motion.span
-                  className={`absolute left-0 top-0 w-0.5 h-6 ${themeClasses.accent} bg-current`}
+                  className={`absolute left-0 w-0.5 ${themeClasses.accent} bg-current`}
+                  style={{ top: '0.2em', height: '1em' }}
                   animate={{
                     opacity: [1, 0, 1],
                   }}
                   transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-              )}
-            </motion.span>
-          )
-        })}
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                )}
+              </motion.span>
+            )
+          })}
+
+          {caretPosition >= text.length && (
+            <motion.span
+              className={`inline-block w-0.5 ml-1 align-baseline self-baseline ${themeClasses.accent} bg-current`}
+              style={{ height: '1em', lineHeight: '1em', transform: 'translateY(0.2em)' }}
+              animate={{
+                opacity: [1, 0, 1],
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          )}
+        </span>
       </div>
-      
-      {caretPosition >= text.length && (
-        <motion.span
-          className={`inline-block w-0.5 h-6 ml-1 ${themeClasses.accent} bg-current`}
-          animate={{
-            opacity: [1, 0, 1],
-          }}
-          transition={{
-            duration: 1,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      )}
     </div>
   )
 }
