@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
+import { setStoredAuth } from '../utils/auth'
 
 type RegisterModalProps = {
   open: boolean
   onClose: () => void
+  onAuthSuccess: (user: AuthResponse['user']) => void
 }
 
 type FieldErrors = {
@@ -26,7 +28,7 @@ type AuthResponse = {
 const USERNAME_MIN = 3
 const PASSWORD_MIN = 6
 
-function RegisterModal({ open, onClose }: RegisterModalProps) {
+function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
   const theme = useTypingStore((state) => state.settings.theme)
   const themeClasses = getThemeClasses(theme)
 
@@ -104,8 +106,8 @@ function RegisterModal({ open, onClose }: RegisterModalProps) {
       }
 
       const auth = data as AuthResponse
-      localStorage.setItem('leotype_token', auth.token)
-      localStorage.setItem('leotype_user', JSON.stringify(auth.user))
+      setStoredAuth(auth.token, auth.user)
+      onAuthSuccess(auth.user)
 
       setSuccessMessage(mode === 'register'
         ? 'Аккаунт создан. Ты в системе.'
