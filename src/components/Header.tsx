@@ -2,7 +2,11 @@ import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
 
-function Header() {
+type HeaderProps = {
+  onOpenRegister: () => void
+}
+
+function Header({ onOpenRegister }: HeaderProps) {
   const theme = useTypingStore((state) => state.settings.theme)
   const themeClasses = getThemeClasses(theme)
   
@@ -39,6 +43,22 @@ function Header() {
       >
         Тренировка скорости печати нового уровня
       </motion.p>
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+        className="mt-6 flex justify-center"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onOpenRegister}
+          className={`px-5 py-2 rounded-full text-sm font-semibold ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors`}
+        >
+          ✨ Регистрация
+        </motion.button>
+      </motion.div>
     </motion.header>
   )
 }

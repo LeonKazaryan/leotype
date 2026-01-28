@@ -3,6 +3,9 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import { prisma } from './db/prisma'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -53,6 +56,97 @@ app.use(
     })
 )
 app.use(express.json())
+
+const JWT_SECRET = process.env.JWT_SECRET
+const TOKEN_EXPIRES_IN = '7d'
+
+function getJwtSecret() {
+    if (!JWT_SECRET) {
+        throw new Error('JWT_SECRET is not configured')
+    }
+    return JWT_SECRET
+}
+
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const rawUsername = typeof req.body?.username === 'string' ? req.body.username : ''
+        const rawPassword = typeof req.body?.password === 'string' ? req.body.password : ''
+        const username = rawUsername.trim()
+
+        if (username.length < 3) {
+            return res.status(400).json({ error: 'Username должен быть минимум 3 символа' })
+        }
+
+        if (rawPassword.length < 6) {
+            return res.status(400).json({ error: 'Пароль должен быть минимум 6 символов' })
+        }
+
+        const existing = await prisma.user.findUnique({ where: { username } })
+        if (existing) {
+            return res.status(409).json({ error: 'Этот username уже занят' })
+        }
+
+        const passwordHash = await bcrypt.hash(rawPassword, 10)
+        const user = await prisma.user.create({
+            data: {
+                username,
+                passwordHash,
+            },
+            select: {
+                id: true,
+                username: true,
+            },
+        })
+
+        const token = jwt.sign({ sub: user.id, username: user.username }, getJwtSecret(), {
+            expiresIn: TOKEN_EXPIRES_IN,
+        })
+
+        return res.status(201).json({ token, user })
+    } catch (error) {
+        console.error('Register error:', error)
+        return res.status(500).json({ error: 'Ошибка сервера' })
+    }
+})
+
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const rawUsername = typeof req.body?.username === 'string' ? req.body.username : ''
+        const rawPassword = typeof req.body?.password === 'string' ? req.body.password : ''
+        const username = rawUsername.trim()
+
+        if (!username || !rawPassword) {
+            return res.status(400).json({ error: 'Username и пароль обязательны' })
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { username },
+            select: {
+                id: true,
+                username: true,
+                passwordHash: true,
+            },
+        })
+
+        if (!user) {
+            return res.status(401).json({ error: 'Неверный username или пароль' })
+        }
+
+        const passwordOk = await bcrypt.compare(rawPassword, user.passwordHash)
+        if (!passwordOk) {
+            return res.status(401).json({ error: 'Неверный username или пароль' })
+        }
+
+        const token = jwt.sign({ sub: user.id, username: user.username }, getJwtSecret(), {
+            expiresIn: TOKEN_EXPIRES_IN,
+        })
+
+        return res.status(200).json({ token, user: { id: user.id, username: user.username } })
+    } catch (error) {
+        console.error('Login error:', error)
+        return res.status(500).json({ error: 'Ошибка сервера' })
+    }
+})
 
 let lastRequestTime = 0
 const MIN_REQUEST_INTERVAL = 3000

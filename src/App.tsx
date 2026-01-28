@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTypingStore } from './store/useTypingStore'
 import TypingTest from './components/TypingTest'
 import Settings from './components/Settings'
@@ -7,12 +7,14 @@ import Header from './components/Header'
 import Keyboard from './components/Keyboard'
 import Confetti from './components/Confetti'
 import BackgroundEffects from './components/BackgroundEffects'
+import RegisterModal from './components/RegisterModal'
 import { getThemeClasses } from './utils/themes'
 
 function App() {
   const theme = useTypingStore((state) => state.settings.theme)
   const showGame = useTypingStore((state) => state.showGame)
   const themeClasses = getThemeClasses(theme)
+  const [isRegisterOpen, setRegisterOpen] = useState(false)
   
   useEffect(() => {
     document.body.className = themeClasses.body
@@ -22,8 +24,9 @@ function App() {
     <div className={`min-h-screen transition-colors duration-500 ${themeClasses.bg} relative`}>
       <BackgroundEffects />
       <Confetti />
+      <RegisterModal open={isRegisterOpen} onClose={() => setRegisterOpen(false)} />
       <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
-        <Header />
+        <Header onOpenRegister={() => setRegisterOpen(true)} />
         <div className="mt-8 space-y-6">
           {!showGame ? (
             <Settings />
