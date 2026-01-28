@@ -17,7 +17,7 @@ model User {
   updatedAt  DateTime @updatedAt
 }
 
-model DictionaryEntry {
+model DictionaryEntry { 
   id          String    @id @default(cuid())
   word        String
   language    String    @default("ru")
