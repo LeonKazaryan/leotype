@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { prisma } from './db/prisma'
+import { prisma } from './db/prisma.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
