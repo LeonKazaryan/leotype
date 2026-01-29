@@ -1,0 +1,32 @@
+GENERAL
+- No hardcoding. All configs, constants, URLs, limits, and keys must be stored in config/env files.
+- Follow modern best practices and current industry standards (2024+).
+- Write clean, readable, maintainable code. No spaghetti, no hacks.
+
+ARCHITECTURE
+- Use clear separation of concerns.
+- Split logic into reusable components, hooks, services, and utils.
+- Components must be small, single-responsibility, and reusable.
+- Business logic must not live inside UI components.
+
+FRONTEND (React)
+- Prefer functional components and hooks.
+- Avoid large components (>200 lines).
+- Use controlled state management (Context/Zustand/etc. when needed).
+- No inline styles unless justified; use consistent styling approach.
+- Proper folder structure (components, hooks, services, utils).
+
+BACKEND (Express / API)
+- Use layered architecture (routes → controllers → services → repositories).
+- No logic in routes.
+- Validate inputs and handle errors properly.
+- Use async/await, no callback hell.
+
+CODE QUALITY
+- No magic numbers or strings.
+- Use meaningful names for variables, functions, and files.
+- Avoid duplication (DRY).
+- Prefer composition over inheritance.
+
+DEFAULT RULE
+- If a better, cleaner, or more scalable solution exists — use it.

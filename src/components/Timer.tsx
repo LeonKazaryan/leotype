@@ -42,13 +42,13 @@ function Timer() {
   }
   
   const text = useTypingStore((state) => state.text)
+  const wordsTyped = testState.userInput.trim().split(/\s+/).filter(Boolean).length
   
   const getProgress = (): number => {
     if (settings.mode === 'time') {
       return testState.startTime ? (timeElapsed / settings.time) * 100 : 0
     }
     if (settings.mode === 'words') {
-      const wordsTyped = testState.userInput.trim().split(/\s+/).filter(Boolean).length
       return (wordsTyped / settings.words) * 100
     }
     return (testState.userInput.length / text.length) * 100
@@ -66,6 +66,12 @@ function Timer() {
         {settings.mode === 'time' && (
           <div className={`text-lg ${themeClasses.secondary}`}>
             / {settings.time}с
+          </div>
+        )}
+        {settings.mode === 'words' && (
+          <div className={`text-lg ${themeClasses.secondary}`}>
+            <span className={themeClasses.primary}>{Math.min(wordsTyped, settings.words)}</span>
+            <span> / {settings.words}</span>
           </div>
         )}
       </div>

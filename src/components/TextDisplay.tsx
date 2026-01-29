@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
 
@@ -11,6 +12,54 @@ interface TextDisplayProps {
 function TextDisplay({ text, getCharStatus, caretPosition }: TextDisplayProps) {
   const settings = useTypingStore((state) => state.settings)
   const themeClasses = getThemeClasses(settings.theme)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [caretMetrics, setCaretMetrics] = useState({ x: 0, y: 0, height: 0, visible: false })
+  
+  const updateCaretPosition = useCallback(() => {
+    const container = containerRef.current
+    if (!container || text.length === 0) {
+      setCaretMetrics((prev) => ({ ...prev, visible: false }))
+      return
+    }
+    
+    const containerRect = container.getBoundingClientRect()
+    const lastIndex = Math.max(text.length - 1, 0)
+    const activeIndex = Math.min(caretPosition, text.length - 1)
+    const activeEl = container.querySelector<HTMLElement>(`[data-char-index="${activeIndex}"]`)
+    
+    if (!activeEl) {
+      setCaretMetrics((prev) => ({ ...prev, visible: false }))
+      return
+    }
+    
+    const activeRect = activeEl.getBoundingClientRect()
+    const isAtEnd = caretPosition >= text.length
+    const x = (isAtEnd ? activeRect.right : activeRect.left) - containerRect.left
+    const y = activeRect.top - containerRect.top
+    const height = activeRect.height
+    
+    setCaretMetrics({ x, y, height, visible: true })
+  }, [caretPosition, text.length])
+
+  useLayoutEffect(() => {
+    updateCaretPosition()
+  }, [updateCaretPosition, text])
+
+  useEffect(() => {
+    const handleResize = () => updateCaretPosition()
+    window.addEventListener('resize', handleResize)
+    const container = containerRef.current
+    const resizeObserver = container ? new ResizeObserver(handleResize) : null
+    if (container && resizeObserver) {
+      resizeObserver.observe(container)
+    }
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (resizeObserver && container) {
+        resizeObserver.disconnect()
+      }
+    }
+  }, [updateCaretPosition])
   
   const getCharColor = (status: string) => {
     switch (status) {
@@ -31,6 +80,7 @@ function TextDisplay({ text, getCharStatus, caretPosition }: TextDisplayProps) {
     return (
       <motion.span
         key={index}
+        data-char-index={index}
         initial={false}
         animate={{
           scale: status === 'incorrect' ? [1, 1.1, 1] : status === 'correct' ? [1, 1.05, 1] : 1,
@@ -46,20 +96,6 @@ function TextDisplay({ text, getCharStatus, caretPosition }: TextDisplayProps) {
         } ${status === 'correct' ? 'transition-all duration-200' : ''}`}
       >
         {char}
-        {status === 'current' && (
-          <motion.span
-            className={`absolute left-0 w-0.5 ${themeClasses.accent} bg-current`}
-            style={{ top: '0.2em', height: '1em' }}
-            animate={{
-              opacity: [1, 0, 1],
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        )}
       </motion.span>
     )
   }
@@ -67,28 +103,32 @@ function TextDisplay({ text, getCharStatus, caretPosition }: TextDisplayProps) {
   return (
     <div className="relative">
       <div
+        ref={containerRef}
         className={`text-2xl leading-relaxed font-mono ${themeClasses.secondary} select-none whitespace-normal`}
         style={{ wordBreak: 'normal', overflowWrap: 'normal' }}
       >
         <span className="inline">
           {text.split('').map((char, index) => renderChar(char, index))}
-
-          {caretPosition >= text.length && (
-            <motion.span
-              className={`inline-block w-0.5 ml-1 align-baseline self-baseline ${themeClasses.accent} bg-current`}
-              style={{ height: '1em', lineHeight: '1em', transform: 'translateY(0.2em)' }}
-              animate={{
-                opacity: [1, 0, 1],
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-          )}
         </span>
       </div>
+      {caretMetrics.visible && (
+        <motion.span
+          className={`absolute w-0.5 ${themeClasses.accent} bg-current`}
+          style={{ top: 0, left: 0 }}
+          animate={{
+            x: caretMetrics.x,
+            y: caretMetrics.y,
+            height: caretMetrics.height,
+            opacity: [1, 0, 1],
+          }}
+          transition={{
+            x: { duration: 0.12, ease: 'easeOut' },
+            y: { duration: 0.12, ease: 'easeOut' },
+            height: { duration: 0.12, ease: 'easeOut' },
+            opacity: { duration: 1, repeat: Infinity, ease: 'easeInOut' },
+          }}
+        />
+      )}
     </div>
   )
 }
