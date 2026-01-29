@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
+import { normalizeCharForKey } from '../utils/charCompare'
 
 const keyboardLayout = [
   ['й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ъ'],
@@ -20,15 +21,17 @@ function Keyboard() {
   
   const getKeyStatus = (key: string): 'active' | 'correct' | 'incorrect' | 'normal' => {
     const currentIndex = testState.userInput.length
-    const currentChar = text[currentIndex]?.toLowerCase()
+    const currentChar = text[currentIndex]
+    const currentKey = currentChar ? normalizeCharForKey(currentChar) : null
     
-    if (key === currentChar) {
+    if (currentKey && key === currentKey) {
       return 'active'
     }
     
     if (currentIndex > 0) {
-      const prevChar = text[currentIndex - 1]?.toLowerCase()
-      if (key === prevChar) {
+      const prevChar = text[currentIndex - 1]
+      const prevKey = prevChar ? normalizeCharForKey(prevChar) : null
+      if (prevKey && key === prevKey) {
         return 'correct'
       }
     }

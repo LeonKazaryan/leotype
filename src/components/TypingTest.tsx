@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
+import { areCharsEquivalent } from '../utils/charCompare'
 import TextDisplay from './TextDisplay'
 import Timer from './Timer'
 
@@ -92,7 +93,7 @@ function TypingTest() {
   
   const getCharStatus = (index: number): 'correct' | 'incorrect' | 'pending' | 'current' => {
     if (index < testState.userInput.length) {
-      return text[index] === testState.userInput[index] ? 'correct' : 'incorrect'
+      return areCharsEquivalent(text[index], testState.userInput[index]) ? 'correct' : 'incorrect'
     }
     if (index === testState.userInput.length) {
       return 'current'

@@ -1,4 +1,5 @@
 import { TestStats } from '../types'
+import { areCharsEquivalent } from './charCompare'
 
 export function calculateStats(
     text: string,
@@ -20,7 +21,7 @@ export function calculateStats(
             extra++
         } else if (i >= inputChars.length) {
             missed++
-        } else if (textChars[i] === inputChars[i]) {
+        } else if (areCharsEquivalent(textChars[i], inputChars[i])) {
             correct++
         } else {
             incorrect++
