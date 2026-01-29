@@ -72,8 +72,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         })
 
         const { settings } = get()
-        const shouldUseAI = settings.useAI || !!(settings.aiTopic && settings.aiTopic.trim().length > 0)
-        if (!shouldUseAI && get().showGame) {
+        if (!settings.useAI && get().showGame) {
             const wordCount = settings.mode === 'time'
                 ? Math.ceil(settings.time * 2.5)
                 : settings.words
@@ -107,8 +106,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         })
 
         const { settings } = get()
-        const shouldUseAI = settings.useAI || !!(settings.aiTopic && settings.aiTopic.trim().length > 0)
-        if (!shouldUseAI && get().showGame) {
+        if (!settings.useAI && get().showGame) {
             const wordCount = settings.mode === 'time'
                 ? Math.ceil(settings.time * 2.5)
                 : settings.words
@@ -260,21 +258,17 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             return
         }
 
-        // Автоматически включаем AI, если введена тематика
-        const shouldUseAI = settings.useAI || !!(settings.aiTopic && settings.aiTopic.trim().length > 0)
-        const updatedSettings = shouldUseAI && !settings.useAI
-            ? { ...settings, useAI: true }
-            : settings
+        const updatedSettings = settings
 
         set({
             settings: updatedSettings,
-            testState: { ...defaultTestState, isGeneratingAI: shouldUseAI },
+            testState: { ...defaultTestState, isGeneratingAI: updatedSettings.useAI },
         })
-        if (shouldUseAI) {
+        if (updatedSettings.useAI) {
             set({ dictionaryUnavailable: false })
         }
 
-        if (shouldUseAI) {
+        if (updatedSettings.useAI) {
             // Для режима времени вычисляем количество слов на основе времени (примерно 2.5 слова в секунду)
             const wordCount = updatedSettings.mode === 'time'
                 ? Math.ceil(updatedSettings.time * 2.5)
@@ -349,22 +343,18 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             return
         }
 
-        // Автоматически включаем AI, если введена тематика
-        const shouldUseAI = settings.useAI || !!(settings.aiTopic && settings.aiTopic.trim().length > 0)
-        const updatedSettings = shouldUseAI && !settings.useAI
-            ? { ...settings, useAI: true }
-            : settings
+        const updatedSettings = settings
 
         set({
             settings: updatedSettings,
-            testState: { ...defaultTestState, isGeneratingAI: shouldUseAI },
+            testState: { ...defaultTestState, isGeneratingAI: updatedSettings.useAI },
             showGame: true,
         })
-        if (shouldUseAI) {
+        if (updatedSettings.useAI) {
             set({ dictionaryUnavailable: false })
         }
 
-        if (shouldUseAI) {
+        if (updatedSettings.useAI) {
             // Для режима времени вычисляем количество слов на основе времени (примерно 2.5 слова в секунду)
             const wordCount = updatedSettings.mode === 'time'
                 ? Math.ceil(updatedSettings.time * 2.5)

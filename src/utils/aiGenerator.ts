@@ -3,7 +3,7 @@ import { apiBaseUrl, apiRoutes } from '../config/api'
 async function generateTextWithAI(
     mode: 'time' | 'words' | 'quote',
     count: number,
-    topic: string = 'программирование',
+    topic: string = '',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
 ): Promise<string> {
     try {
@@ -22,7 +22,7 @@ async function generateTextWithAI(
             body: JSON.stringify({
                 mode,
                 count,
-                topic: topic.trim() || 'программирование',
+                topic: topic.trim(),
                 difficulty,
             }),
             signal: controller.signal,
