@@ -11,6 +11,7 @@ interface TypingStore {
     testState: TestState
     text: string
     showGame: boolean
+    dictionaryUnavailable: boolean
 
     setMode: (mode: TestMode) => void
     setTime: (time: number) => void
@@ -29,6 +30,7 @@ interface TypingStore {
 
     generateNewText: () => void
     goToSettings: () => void
+    setDictionaryUnavailable: (open: boolean) => void
 }
 
 const defaultSettings: TestSettings = {
@@ -59,19 +61,39 @@ const defaultTestState: TestState = {
 export const useTypingStore = create<TypingStore>((set, get) => ({
     settings: defaultSettings,
     testState: defaultTestState,
-    text: generateText(defaultSettings.mode, defaultSettings.words),
+    text: '',
     showGame: false,
+    dictionaryUnavailable: false,
 
     setMode: (mode) => {
         set((state) => {
             const newSettings = { ...state.settings, mode }
-            const newText = generateText(newSettings.mode, newSettings.words)
-
-            return {
-                settings: newSettings,
-                text: newText,
-            }
+            return { settings: newSettings }
         })
+
+        const { settings } = get()
+        const shouldUseAI = settings.useAI || !!(settings.aiTopic && settings.aiTopic.trim().length > 0)
+        if (!shouldUseAI && get().showGame) {
+            const wordCount = settings.mode === 'time'
+                ? Math.ceil(settings.time * 2.5)
+                : settings.words
+
+            set({ testState: { ...get().testState, isGeneratingAI: true }, dictionaryUnavailable: false })
+            generateTextFromDictionary(settings.mode, wordCount, settings.aiDifficulty)
+                .then((text) => {
+                    set({
+                        text,
+                        testState: { ...get().testState, isGeneratingAI: false },
+                    })
+                })
+                .catch(() => {
+                    set({
+                        text: '',
+                        testState: { ...get().testState, isGeneratingAI: false },
+                        dictionaryUnavailable: true,
+                    })
+                })
+        }
     },
 
     setTime: (time) => {
@@ -81,13 +103,32 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
     setWords: (words) => {
         set((state) => {
             const newSettings = { ...state.settings, words }
-            const newText = generateText(newSettings.mode, words)
-
-            return {
-                settings: newSettings,
-                text: newText,
-            }
+            return { settings: newSettings }
         })
+
+        const { settings } = get()
+        const shouldUseAI = settings.useAI || !!(settings.aiTopic && settings.aiTopic.trim().length > 0)
+        if (!shouldUseAI && get().showGame) {
+            const wordCount = settings.mode === 'time'
+                ? Math.ceil(settings.time * 2.5)
+                : settings.words
+
+            set({ testState: { ...get().testState, isGeneratingAI: true }, dictionaryUnavailable: false })
+            generateTextFromDictionary(settings.mode, wordCount, settings.aiDifficulty)
+                .then((text) => {
+                    set({
+                        text,
+                        testState: { ...get().testState, isGeneratingAI: false },
+                    })
+                })
+                .catch(() => {
+                    set({
+                        text: '',
+                        testState: { ...get().testState, isGeneratingAI: false },
+                        dictionaryUnavailable: true,
+                    })
+                })
+        }
     },
 
     setTheme: (theme) => {
@@ -122,6 +163,9 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         set((state) => ({
             settings: { ...state.settings, aiDifficulty: difficulty },
         }))
+    },
+    setDictionaryUnavailable: (open) => {
+        set({ dictionaryUnavailable: open })
     },
 
     startTest: () => {
@@ -226,6 +270,9 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             settings: updatedSettings,
             testState: { ...defaultTestState, isGeneratingAI: shouldUseAI },
         })
+        if (shouldUseAI) {
+            set({ dictionaryUnavailable: false })
+        }
 
         if (shouldUseAI) {
             // Для режима времени вычисляем количество слов на основе времени (примерно 2.5 слова в секунду)
@@ -286,10 +333,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                     })
                 })
                 .catch(() => {
-                    const fallbackText = generateText(updatedSettings.mode, wordCount)
                     set({
-                        text: fallbackText,
+                        text: '',
                         testState: { ...get().testState, isGeneratingAI: false },
+                        dictionaryUnavailable: true,
                     })
                 })
         }
@@ -313,6 +360,9 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             testState: { ...defaultTestState, isGeneratingAI: shouldUseAI },
             showGame: true,
         })
+        if (shouldUseAI) {
+            set({ dictionaryUnavailable: false })
+        }
 
         if (shouldUseAI) {
             // Для режима времени вычисляем количество слов на основе времени (примерно 2.5 слова в секунду)
@@ -373,10 +423,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                     })
                 })
                 .catch(() => {
-                    const fallbackText = generateText(updatedSettings.mode, wordCount)
                     set({
-                        text: fallbackText,
+                        text: '',
                         testState: { ...get().testState, isGeneratingAI: false },
+                        dictionaryUnavailable: true,
                     })
                 })
         }

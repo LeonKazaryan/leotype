@@ -8,12 +8,15 @@ import Keyboard from './components/Keyboard'
 import Confetti from './components/Confetti'
 import BackgroundEffects from './components/BackgroundEffects'
 import RegisterModal from './components/RegisterModal'
+import DictionaryUnavailableModal from './components/DictionaryUnavailableModal'
 import { AuthUser, clearStoredAuth, getStoredUser } from './utils/auth'
 import { getThemeClasses } from './utils/themes'
 
 function App() {
   const theme = useTypingStore((state) => state.settings.theme)
   const showGame = useTypingStore((state) => state.showGame)
+  const dictionaryUnavailable = useTypingStore((state) => state.dictionaryUnavailable)
+  const setDictionaryUnavailable = useTypingStore((state) => state.setDictionaryUnavailable)
   const themeClasses = getThemeClasses(theme)
   const [isRegisterOpen, setRegisterOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
@@ -37,6 +40,10 @@ function App() {
           setCurrentUser(user)
           setRegisterOpen(false)
         }}
+      />
+      <DictionaryUnavailableModal
+        open={dictionaryUnavailable}
+        onClose={() => setDictionaryUnavailable(false)}
       />
       <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         <Header
