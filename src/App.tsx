@@ -17,6 +17,7 @@ function App() {
   const showGame = useTypingStore((state) => state.showGame)
   const dictionaryUnavailable = useTypingStore((state) => state.dictionaryUnavailable)
   const setDictionaryUnavailable = useTypingStore((state) => state.setDictionaryUnavailable)
+  const goToSettings = useTypingStore((state) => state.goToSettings)
   const themeClasses = getThemeClasses(theme)
   const [isRegisterOpen, setRegisterOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
@@ -43,7 +44,10 @@ function App() {
       />
       <DictionaryUnavailableModal
         open={dictionaryUnavailable}
-        onClose={() => setDictionaryUnavailable(false)}
+        onClose={() => {
+          setDictionaryUnavailable(false)
+          goToSettings()
+        }}
       />
       <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         <Header

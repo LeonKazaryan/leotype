@@ -21,7 +21,8 @@ export const dictionaryService = {
         const entries = await dictionaryRepository.findByDifficulty(
             prisma,
             difficulty,
-            dictionaryConfig.language
+            dictionaryConfig.language,
+            dictionaryConfig.source
         )
 
         const words = entries.map((entry) => entry.word)
@@ -55,7 +56,8 @@ export const dictionaryService = {
             const existingEntries = await dictionaryRepository.findByDifficulty(
                 tx,
                 difficulty,
-                dictionaryConfig.language
+                dictionaryConfig.language,
+                dictionaryConfig.source
             )
 
             const existingWordSet = new Set(existingEntries.map((entry) => entry.word.toLowerCase()))

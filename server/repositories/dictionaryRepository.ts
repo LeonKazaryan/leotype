@@ -6,9 +6,10 @@ export const dictionaryRepository = {
     findByDifficulty: (
         db: DictionaryDbClient,
         difficulty: string,
-        language: string
+        language: string,
+        source: string
     ) => db.dictionaryEntry.findMany({
-        where: { difficulty, language },
+        where: { difficulty, language, source },
         select: { id: true, word: true },
     }),
     createMany: (
