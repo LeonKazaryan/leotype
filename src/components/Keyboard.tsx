@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
-import { normalizeCharForKey } from '../utils/charCompare'
+import { areCharsEquivalent, normalizeCharForKey } from '../utils/charCompare'
 
 const keyboardLayout = [
   ['й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ъ'],
@@ -23,6 +23,18 @@ function Keyboard() {
     const currentIndex = testState.userInput.length
     const currentChar = text[currentIndex]
     const currentKey = currentChar ? normalizeCharForKey(currentChar) : null
+
+    const lastInputIndex = currentIndex - 1
+    if (lastInputIndex >= 0) {
+      const expectedChar = text[lastInputIndex]
+      const inputChar = testState.userInput[lastInputIndex]
+      if (expectedChar && inputChar && !areCharsEquivalent(expectedChar, inputChar)) {
+        const incorrectKey = normalizeCharForKey(inputChar)
+        if (incorrectKey && key === incorrectKey) {
+          return 'incorrect'
+        }
+      }
+    }
     
     if (currentKey && key === currentKey) {
       return 'active'
@@ -66,6 +78,8 @@ function Keyboard() {
                     backgroundColor:
                       status === 'active'
                         ? 'rgba(14, 165, 233, 0.3)'
+                        : status === 'incorrect'
+                        ? 'rgba(239, 68, 68, 0.25)'
                         : status === 'correct'
                         ? 'rgba(34, 197, 94, 0.2)'
                         : 'transparent',
@@ -73,6 +87,8 @@ function Keyboard() {
                   className={`w-10 h-10 flex items-center justify-center rounded-lg border-2 ${
                     isActive
                       ? `${themeClasses.border} ${themeClasses.accent} font-bold`
+                      : status === 'incorrect'
+                      ? 'border-red-500 text-red-400'
                       : `${themeClasses.border} ${themeClasses.secondary}`
                   } text-sm`}
                 >
