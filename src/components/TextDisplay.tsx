@@ -23,7 +23,6 @@ function TextDisplay({ text, getCharStatus, caretPosition }: TextDisplayProps) {
     }
     
     const containerRect = container.getBoundingClientRect()
-    const lastIndex = Math.max(text.length - 1, 0)
     const activeIndex = Math.min(caretPosition, text.length - 1)
     const activeEl = container.querySelector<HTMLElement>(`[data-char-index="${activeIndex}"]`)
     

@@ -7,6 +7,7 @@ interface ResultsChartProps {
   chart: ChartData
   themeClasses: {
     accent: string
+    primary: string
     secondary: string
     border: string
     card: string
