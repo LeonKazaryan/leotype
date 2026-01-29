@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useId } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { resultsViewConfig } from '../../config/resultsView'
 import { ChartData } from '../../utils/results'
 
@@ -13,11 +13,51 @@ interface ResultsChartProps {
   }
 }
 
-const { animation, chart: chartConfig, labels } = resultsViewConfig
+const { animation, chart: chartConfig, labels, format, tooltip } = resultsViewConfig
 
 function ResultsChart({ chart, themeClasses }: ResultsChartProps) {
   const viewBox = `0 0 ${chart.width} ${chart.height}`
   const gradientId = useId()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
+  const tooltipValue = useMemo(() => {
+    if (hoverIndex === null) return null
+    return chart.values[hoverIndex]
+  }, [chart.values, hoverIndex])
+
+  const handlePointerMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const container = containerRef.current
+    if (!container || chart.points.length === 0) return
+
+    const rect = container.getBoundingClientRect()
+    const localX = Math.min(Math.max(event.clientX - rect.left, 0), rect.width)
+    const viewX = (localX / rect.width) * chart.width
+
+    let nearestIndex = 0
+    let nearestDistance = Number.POSITIVE_INFINITY
+    chart.points.forEach((point, index) => {
+      const distance = Math.abs(point.x - viewX)
+      if (distance < nearestDistance) {
+        nearestDistance = distance
+        nearestIndex = index
+      }
+    })
+
+    if (nearestIndex !== hoverIndex) {
+      setHoverIndex(nearestIndex)
+    }
+
+    const point = chart.points[nearestIndex]
+    setTooltipPosition({
+      x: (point.x / chart.width) * rect.width,
+      y: (point.y / chart.height) * rect.height,
+    })
+  }
+
+  const handlePointerLeave = () => {
+    setHoverIndex(null)
+  }
 
   return (
     <motion.div
@@ -30,7 +70,12 @@ function ResultsChart({ chart, themeClasses }: ResultsChartProps) {
         <span className={themeClasses.accent}>{labels.chartWpm}</span>
       </div>
 
-      <div className={`mt-4 ${themeClasses.accent}`}>
+      <div
+        ref={containerRef}
+        onMouseMove={handlePointerMove}
+        onMouseLeave={handlePointerLeave}
+        className={`relative mt-4 ${themeClasses.accent}`}
+      >
         <svg viewBox={viewBox} className="w-full h-40">
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
@@ -102,6 +147,18 @@ function ResultsChart({ chart, themeClasses }: ResultsChartProps) {
             />
           ))}
         </svg>
+        {tooltipValue !== null && hoverIndex !== null && (
+          <div
+            className={`absolute ${themeClasses.card} ${themeClasses.border} ${tooltip.opacityClass} border text-xs font-semibold ${themeClasses.primary} ${tooltip.radius} ${tooltip.maxWidthClass} pointer-events-none`}
+            style={{
+              left: tooltipPosition.x + tooltip.offsetX,
+              top: tooltipPosition.y + tooltip.offsetY,
+              padding: `${tooltip.paddingY}px ${tooltip.paddingX}px`,
+            }}
+          >
+            {Number(tooltipValue).toFixed(format.wpmDecimals)} {labels.wpm}
+          </div>
+        )}
       </div>
       <div className={`mt-3 text-xs uppercase tracking-widest text-center ${themeClasses.secondary}`}>
         {labels.chartTime}

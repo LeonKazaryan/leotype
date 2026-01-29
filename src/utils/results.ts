@@ -10,6 +10,7 @@ export type ChartData = {
   areaPath: string
   points: ChartPoint[]
   gridY: number[]
+  values: number[]
 }
 
 const { chart, format, labels, series } = resultsViewConfig
@@ -82,6 +83,7 @@ export const buildChartData = (values: number[]): ChartData => {
     areaPath,
     points,
     gridY,
+    values,
   }
 }
 

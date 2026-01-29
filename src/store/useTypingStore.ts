@@ -3,6 +3,7 @@ import { TestSettings, TestState, TestMode, Theme, AIDifficulty } from '../types
 import { generateText } from '../utils/textGenerator'
 import { generateTextWithAI } from '../utils/aiGenerator'
 import { calculateStats } from '../utils/stats'
+import { buildWpmSeriesFromTimestamps, updateInputTimestamps } from '../utils/typingMetrics'
 
 interface TypingStore {
     settings: TestSettings
@@ -50,6 +51,8 @@ const defaultTestState: TestState = {
     endTime: null,
     stats: null,
     isGeneratingAI: false,
+    inputTimestamps: [],
+    wpmSeries: [],
 }
 
 export const useTypingStore = create<TypingStore>((set, get) => ({
@@ -139,6 +142,8 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 startTime,
                 endTime: null,
                 stats: null,
+                inputTimestamps: [],
+                wpmSeries: [],
             },
         })
 
@@ -159,12 +164,20 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
         const newIndex = input.length
         const isComplete = newIndex >= text.length
+        const now = Date.now()
+        const nextTimestamps = updateInputTimestamps(
+            testState.inputTimestamps,
+            testState.userInput.length,
+            input.length,
+            now
+        )
 
         set((state) => ({
             testState: {
                 ...state.testState,
                 userInput: input,
                 currentIndex: newIndex,
+                inputTimestamps: nextTimestamps,
             },
         }))
 
@@ -181,6 +194,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         const endTime = Date.now()
         const timeSeconds = (endTime - testState.startTime) / 1000
         const stats = calculateStats(text, testState.userInput, timeSeconds)
+        const wpmSeries = buildWpmSeriesFromTimestamps(testState.inputTimestamps, testState.startTime, endTime)
 
         set({
             testState: {
@@ -189,6 +203,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 isFinished: true,
                 endTime,
                 stats,
+                wpmSeries,
             },
         })
     },

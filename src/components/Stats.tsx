@@ -11,7 +11,7 @@ function Stats() {
   const generateNewText = useTypingStore((state) => state.generateNewText)
   const goToSettings = useTypingStore((state) => state.goToSettings)
   const themeClasses = getThemeClasses(settings.theme)
-  const results = useResultsData(testState.stats)
+  const results = useResultsData(testState.stats, testState.wpmSeries)
   const showOverlay = useResultsOverlay(testState.isFinished, !!testState.stats)
   
   if (!results) {

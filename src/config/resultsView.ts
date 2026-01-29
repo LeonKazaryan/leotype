@@ -27,6 +27,15 @@ export const resultsViewConfig = {
     accuracyDecimals: 0,
     wpmDecimals: 0,
   },
+  tooltip: {
+    offsetX: 12,
+    offsetY: -18,
+    paddingX: 10,
+    paddingY: 6,
+    radius: 'rounded-full',
+    maxWidthClass: 'max-w-[160px]',
+    opacityClass: 'bg-opacity-90',
+  },
   chart: {
     width: 100,
     height: 36,

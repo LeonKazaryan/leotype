@@ -10,13 +10,13 @@ export type ResultsData = {
   chart: ReturnType<typeof buildChartData>
 }
 
-export const useResultsData = (stats: TestStats | null): ResultsData | null => {
+export const useResultsData = (stats: TestStats | null, wpmSeries?: number[]): ResultsData | null => {
   return useMemo(() => {
     if (!stats) return null
 
     const isPerfect = isPerfectRun(stats)
     const typedCharacters = getTypedCharacters(stats)
-    const series = buildWpmSeries(stats)
+    const series = wpmSeries && wpmSeries.length > 0 ? wpmSeries : buildWpmSeries(stats)
     const chart = buildChartData(series)
     const summarySegments = buildSummarySegments(stats)
 

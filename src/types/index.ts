@@ -37,4 +37,6 @@ export interface TestState {
   endTime: number | null
   stats: TestStats | null
   isGeneratingAI: boolean
+  inputTimestamps: number[]
+  wpmSeries: number[]
 }
