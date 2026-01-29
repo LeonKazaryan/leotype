@@ -6,6 +6,8 @@ import { dirname, join } from 'path'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { prisma } from './db/prisma.js'
+import { dictionaryRouter } from './routes/dictionaryRoutes.js'
+import { dictionaryService } from './services/dictionaryService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -56,6 +58,7 @@ app.use(
     })
 )
 app.use(express.json())
+app.use('/api/dictionary', dictionaryRouter)
 
 const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_EXPIRES_IN = '7d'
@@ -340,6 +343,11 @@ async function makeXAIRequest(params: {
     }
 
     console.log(`✅ Successfully generated ${generatedText.length} characters`)
+    try {
+        await dictionaryService.ingestGeneratedText({ text: generatedText, difficulty, mode })
+    } catch (error) {
+        console.error('❌ Failed to ingest dictionary words:', error)
+    }
     return generatedText
 }
 

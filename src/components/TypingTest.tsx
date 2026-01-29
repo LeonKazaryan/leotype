@@ -146,7 +146,7 @@ function TypingTest() {
               animate={{ opacity: 1 }}
               className={`text-xl font-semibold ${themeClasses.primary} mb-2`}
             >
-              AI Generation in Process
+              Генерация текста
             </motion.p>
             <motion.p
               initial={{ opacity: 0 }}

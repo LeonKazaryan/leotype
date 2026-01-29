@@ -1,12 +1,11 @@
+import { apiBaseUrl, apiRoutes } from '../config/api'
+
 async function generateTextWithAI(
     mode: 'time' | 'words' | 'quote',
     count: number,
     topic: string = 'программирование',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
 ): Promise<string> {
-    const apiUrl = import.meta.env.VITE_API_URL || 
-        (import.meta.env.PROD ? '' : 'http://localhost:3001')
-
     try {
         if (import.meta.env.DEV) {
             console.log('Generating AI text with params:', { mode, count, topic, difficulty })
@@ -15,7 +14,7 @@ async function generateTextWithAI(
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 60000)
 
-        const response = await fetch(`${apiUrl}/api/generate-text`, {
+        const response = await fetch(`${apiBaseUrl}${apiRoutes.generateText}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

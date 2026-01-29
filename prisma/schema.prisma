@@ -27,4 +27,7 @@ model DictionaryEntry {
   difficulty  String?   
   tags        String[]  @default([])
   createdAt   DateTime  @default(now())
+
+  @@index([difficulty, language])
+  @@unique([word, language, difficulty])
 }

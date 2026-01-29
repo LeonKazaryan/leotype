@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { TestSettings, TestState, TestMode, Theme, AIDifficulty } from '../types'
 import { generateText } from '../utils/textGenerator'
 import { generateTextWithAI } from '../utils/aiGenerator'
+import { generateTextFromDictionary } from '../utils/dictionaryText'
 import { calculateStats } from '../utils/stats'
 import { buildWpmSeriesFromTimestamps, updateInputTimestamps } from '../utils/typingMetrics'
 
@@ -272,10 +273,25 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             const wordCount = updatedSettings.mode === 'time'
                 ? Math.ceil(updatedSettings.time * 2.5)
                 : updatedSettings.words
-            const newText = generateText(updatedSettings.mode, wordCount)
+
             set({
-                text: newText,
+                testState: { ...get().testState, isGeneratingAI: true },
             })
+
+            generateTextFromDictionary(updatedSettings.mode, wordCount, updatedSettings.aiDifficulty)
+                .then((text) => {
+                    set({
+                        text,
+                        testState: { ...get().testState, isGeneratingAI: false },
+                    })
+                })
+                .catch(() => {
+                    const fallbackText = generateText(updatedSettings.mode, wordCount)
+                    set({
+                        text: fallbackText,
+                        testState: { ...get().testState, isGeneratingAI: false },
+                    })
+                })
         }
     },
 
@@ -344,10 +360,25 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             const wordCount = updatedSettings.mode === 'time'
                 ? Math.ceil(updatedSettings.time * 2.5)
                 : updatedSettings.words
-            const newText = generateText(updatedSettings.mode, wordCount)
+
             set({
-                text: newText,
+                testState: { ...get().testState, isGeneratingAI: true },
             })
+
+            generateTextFromDictionary(updatedSettings.mode, wordCount, updatedSettings.aiDifficulty)
+                .then((text) => {
+                    set({
+                        text,
+                        testState: { ...get().testState, isGeneratingAI: false },
+                    })
+                })
+                .catch(() => {
+                    const fallbackText = generateText(updatedSettings.mode, wordCount)
+                    set({
+                        text: fallbackText,
+                        testState: { ...get().testState, isGeneratingAI: false },
+                    })
+                })
         }
     },
 
