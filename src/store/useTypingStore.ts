@@ -67,7 +67,9 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
     setMode: (mode) => {
         set((state) => {
-            const newSettings = { ...state.settings, mode }
+            const newSettings = mode === 'quote'
+                ? { ...state.settings, mode, useAI: true }
+                : { ...state.settings, mode }
             return { settings: newSettings }
         })
 
@@ -147,7 +149,9 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
     toggleAI: () => {
         set((state) => ({
-            settings: { ...state.settings, useAI: !state.settings.useAI },
+            settings: state.settings.mode === 'quote'
+                ? { ...state.settings, useAI: true }
+                : { ...state.settings, useAI: !state.settings.useAI },
         }))
     },
 
@@ -258,6 +262,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             return
         }
 
+        if (settings.mode === 'quote' && (!settings.useAI || settings.aiTopic.trim().length === 0)) {
+            return
+        }
+
         const updatedSettings = settings
 
         set({
@@ -340,6 +348,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         const { settings, testState } = get()
 
         if (testState.isGeneratingAI) {
+            return
+        }
+
+        if (settings.mode === 'quote' && (!settings.useAI || settings.aiTopic.trim().length === 0)) {
             return
         }
 

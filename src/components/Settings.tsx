@@ -18,6 +18,9 @@ function Settings() {
   const isGeneratingAI = useTypingStore(state => state.testState.isGeneratingAI)
 
   const themeClasses = getThemeClasses(settings.theme)
+  const isQuoteMode = settings.mode === 'quote'
+  const hasAITopic = settings.aiTopic.trim().length > 0
+  const isQuoteBlocked = isQuoteMode && (!settings.useAI || !hasAITopic)
 
   const modes: TestMode[] = ['time', 'words', 'quote']
   const themes: Theme[] = ['dark', 'light', 'neon', 'ocean', 'forest']
@@ -217,11 +220,12 @@ function Settings() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={toggleAI}
+                  disabled={isQuoteMode}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                     settings.useAI
                       ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
                       : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                  }`}
+                  } ${isQuoteMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   🤖 {settings.useAI ? 'Вкл' : 'Выкл'}
                 </motion.button>
@@ -237,9 +241,9 @@ function Settings() {
                   whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
                   whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
                   onClick={generateNewText}
-                  disabled={isGeneratingAI}
+                  disabled={isGeneratingAI || isQuoteBlocked}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
-                    isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
+                    isGeneratingAI || isQuoteBlocked ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
                   {isGeneratingAI ? '⏳ Генерация...' : 'Новый текст'}
@@ -248,14 +252,19 @@ function Settings() {
                   whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
                   whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
                   onClick={resetTest}
-                  disabled={isGeneratingAI}
+                  disabled={isGeneratingAI || isQuoteBlocked}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
-                    isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
+                    isGeneratingAI || isQuoteBlocked ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
                   {isGeneratingAI ? '⏳ Генерация...' : 'Сброс'}
                 </motion.button>
               </div>
+              {isQuoteMode && (
+                <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
+                  Для режима «Цитата» нужен включенный AI и заполненная тематика.
+                </p>
+              )}
             </div>
           </div>
         </div>

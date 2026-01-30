@@ -29,7 +29,7 @@ const requiredNumber = (name: string): number => {
 }
 
 const allowedDifficulties = ['easy', 'medium', 'hard'] as const
-const ingestModes = ['words', 'time', 'quote'] as const
+const ingestModes = ['words', 'time'] as const
 
 export type DictionaryDifficulty = typeof allowedDifficulties[number]
 export type DictionaryIngestMode = typeof ingestModes[number]

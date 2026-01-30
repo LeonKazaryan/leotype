@@ -394,6 +394,9 @@ app.post('/api/generate-text', async (req: express.Request, res: express.Respons
         if (!mode || typeof count !== 'number' || typeof topic !== 'string' || !difficulty) {
             return res.status(400).json({ error: 'Invalid request parameters' })
         }
+        if (mode === 'quote' && topic.trim().length === 0) {
+            return res.status(400).json({ error: 'Topic is required for quote mode' })
+        }
 
         const result = await new Promise<string>((resolve, reject) => {
             requestQueue.push({ resolve, reject, params: { mode, count, topic, difficulty } })
