@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import { useId, useMemo, useRef, useState } from 'react'
 import { resultsViewConfig } from '../../config/resultsView'
-import { ChartData } from '../../utils/results'
+import { useI18n } from '../../hooks/useI18n'
+import type { ChartData } from '../../utils/results'
 
 interface ResultsChartProps {
   chart: ChartData
@@ -14,9 +15,10 @@ interface ResultsChartProps {
   }
 }
 
-const { animation, chart: chartConfig, labels, format, tooltip } = resultsViewConfig
+const { animation, chart: chartConfig, format, tooltip } = resultsViewConfig
 
 function ResultsChart({ chart, themeClasses }: ResultsChartProps) {
+  const i18n = useI18n()
   const viewBox = `0 0 ${chart.width} ${chart.height}`
   const gradientId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -68,7 +70,7 @@ function ResultsChart({ chart, themeClasses }: ResultsChartProps) {
       className={`rounded-2xl border ${themeClasses.border} ${themeClasses.card} px-6 py-5 shadow-xl`}
     >
       <div className={`text-xs uppercase tracking-widest ${themeClasses.secondary}`}>
-        <span className={themeClasses.accent}>{labels.chartWpm}</span>
+        <span className={themeClasses.accent}>{i18n.results.chartWpm}</span>
       </div>
 
       <div
@@ -157,12 +159,12 @@ function ResultsChart({ chart, themeClasses }: ResultsChartProps) {
               padding: `${tooltip.paddingY}px ${tooltip.paddingX}px`,
             }}
           >
-            {Number(tooltipValue).toFixed(format.wpmDecimals)} {labels.wpm}
+            {Number(tooltipValue).toFixed(format.wpmDecimals)} {i18n.results.wpm}
           </div>
         )}
       </div>
       <div className={`mt-3 text-xs uppercase tracking-widest text-center ${themeClasses.secondary}`}>
-        {labels.chartTime}
+        {i18n.results.chartTime}
       </div>
     </motion.div>
   )

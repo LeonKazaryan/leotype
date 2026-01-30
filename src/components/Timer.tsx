@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
+import { useI18n } from '../hooks/useI18n'
 
 function Timer() {
   const testState = useTypingStore((state) => state.testState)
@@ -9,6 +10,7 @@ function Timer() {
   const goToSettings = useTypingStore((state) => state.goToSettings)
   const [timeElapsed, setTimeElapsed] = useState(0)
   const themeClasses = getThemeClasses(settings.theme)
+  const i18n = useI18n()
   
   useEffect(() => {
     if (!testState.isActive || testState.isFinished) {
@@ -65,7 +67,7 @@ function Timer() {
         
         {settings.mode === 'time' && (
           <div className={`text-lg ${themeClasses.secondary}`}>
-            / {settings.time}с
+            / {settings.time}{i18n.timer.timeUnitShort}
           </div>
         )}
         {settings.mode === 'words' && (
@@ -82,9 +84,9 @@ function Timer() {
           whileTap={{ scale: 0.95 }}
           onClick={goToSettings}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium ${themeClasses.secondary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors`}
-          title="Вернуться в меню"
+          title={i18n.timer.backToMenu}
         >
-          ← Меню
+          ← {i18n.timer.menu}
         </motion.button>
       </div>
       

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { resultsViewConfig } from '../../config/resultsView'
-import { ChartData } from '../../utils/results'
+import type { ChartData } from '../../utils/results'
 import ResultsActions from './ResultsActions'
 import ResultsChart from './ResultsChart'
 import ResultsHero from './ResultsHero'

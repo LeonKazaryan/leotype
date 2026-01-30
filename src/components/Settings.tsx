@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
-import { TestMode, Theme, AIDifficulty } from '../types'
+import type { TestMode, Theme, AIDifficulty } from '../types'
+import { supportedLanguages } from '../config/language'
+import { settingsOptions } from '../config/settings'
 import { getThemeClasses } from '../utils/themes'
+import { useI18n } from '../hooks/useI18n'
 
 function Settings() {
   const settings = useTypingStore(state => state.settings)
@@ -9,6 +12,7 @@ function Settings() {
   const setTime = useTypingStore(state => state.setTime)
   const setWords = useTypingStore(state => state.setWords)
   const setTheme = useTypingStore(state => state.setTheme)
+  const setLanguage = useTypingStore(state => state.setLanguage)
   const toggleKeyboard = useTypingStore(state => state.toggleKeyboard)
   const toggleAI = useTypingStore(state => state.toggleAI)
   const setAITopic = useTypingStore(state => state.setAITopic)
@@ -16,16 +20,17 @@ function Settings() {
   const resetTest = useTypingStore(state => state.resetTest)
   const generateNewText = useTypingStore(state => state.generateNewText)
   const isGeneratingAI = useTypingStore(state => state.testState.isGeneratingAI)
+  const i18n = useI18n()
 
   const themeClasses = getThemeClasses(settings.theme)
   const isQuoteMode = settings.mode === 'quote'
   const hasAITopic = settings.aiTopic.trim().length > 0
   const isQuoteBlocked = isQuoteMode && (!settings.useAI || !hasAITopic)
 
-  const modes: TestMode[] = ['time', 'words', 'quote']
-  const themes: Theme[] = ['dark', 'light', 'neon', 'ocean', 'forest']
-  const timeOptions = [10, 15, 25, 30, 60]
-  const wordOptions = [15, 20, 25, 50]
+  const modes: TestMode[] = settingsOptions.modes
+  const themes: Theme[] = settingsOptions.themes
+  const timeOptions = settingsOptions.timeOptions
+  const wordOptions = settingsOptions.wordOptions
 
   return (
     <motion.div
@@ -37,7 +42,7 @@ function Settings() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>Режим</label>
+            <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>{i18n.settings.modeLabel}</label>
             <div className="flex gap-2 flex-wrap">
               {modes.map(mode => (
                 <motion.button
@@ -51,7 +56,7 @@ function Settings() {
                       : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
                   }`}
                 >
-                  {mode === 'time' ? 'Время' : mode === 'words' ? 'Слова' : 'Цитата'}
+                  {i18n.settings.modeOptions[mode]}
                 </motion.button>
               ))}
             </div>
@@ -60,7 +65,7 @@ function Settings() {
           {settings.mode === 'time' && (
             <div className="space-y-2">
               <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
-                Время (сек)
+                {i18n.settings.timeLabel}
               </label>
               <div className="flex gap-2 flex-wrap">
                 {timeOptions.map(time => (
@@ -85,7 +90,7 @@ function Settings() {
           {settings.mode === 'words' && (
             <div className="space-y-2">
               <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
-                Слов
+                {i18n.settings.wordsLabel}
               </label>
               <div className="flex gap-2 flex-wrap">
                 {wordOptions.map(words => (
@@ -109,7 +114,7 @@ function Settings() {
         </div>
 
         <div className="space-y-2">
-          <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>Тема</label>
+          <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>{i18n.theme.label}</label>
           <div className="flex gap-2 flex-wrap">
             {themes.map(theme => (
               <motion.button
@@ -123,7 +128,28 @@ function Settings() {
                     : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
                 }`}
               >
-                {theme}
+                {i18n.theme.options[theme]}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>{i18n.language.label}</label>
+          <div className="flex gap-2 flex-wrap">
+            {supportedLanguages.map((language) => (
+              <motion.button
+                key={language}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setLanguage(language)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                  settings.language === language
+                    ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                    : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                }`}
+              >
+                {i18n.language.options[language]}
               </motion.button>
             ))}
           </div>
@@ -133,38 +159,33 @@ function Settings() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-lg">🤖</span>
-              <h3 className={`text-base font-semibold ${themeClasses.primary}`}>Настройки AI</h3>
+              <h3 className={`text-base font-semibold ${themeClasses.primary}`}>{i18n.settings.ai.title}</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className={`block text-sm font-medium ${themeClasses.secondary}`}>
-                  Тематика
+                  {i18n.settings.ai.topicLabel}
                 </label>
                 <input
                   type="text"
                   value={settings.aiTopic}
                   onChange={e => setAITopic(e.target.value)}
-                  placeholder="Например: программирование, наука, история..."
+                  placeholder={i18n.settings.ai.topicPlaceholder}
                   className={`w-full px-3 py-2 rounded-lg text-sm ${themeClasses.card} border-2 ${themeClasses.border} ${themeClasses.secondary} bg-transparent focus:outline-none focus:border-opacity-100 focus:${themeClasses.accent} transition-all placeholder:opacity-50`}
                 />
                 <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
-                  Укажите тему для генерации текста
+                  {i18n.settings.ai.topicHint}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <label className={`block text-sm font-medium ${themeClasses.secondary}`}>
-                  Сложность
+                  {i18n.settings.ai.difficultyLabel}
                 </label>
                 <div className="flex gap-2 flex-wrap">
                   {(['easy', 'medium', 'hard'] as AIDifficulty[]).map(difficulty => {
-                    const labels = {
-                      easy: { text: 'Легкая', icon: '🟢' },
-                      medium: { text: 'Средняя', icon: '🟡' },
-                      hard: { text: 'Сложная', icon: '🔴' },
-                    }
-                    const label = labels[difficulty]
+                    const icon = settingsOptions.aiDifficultyOptions[difficulty]
 
                     return (
                       <motion.button
@@ -178,13 +199,13 @@ function Settings() {
                             : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
                         }`}
                       >
-                        {label.icon} {label.text}
+                        {icon} {i18n.settings.ai.difficultyOptions[difficulty]}
                       </motion.button>
                     )
                   })}
                 </div>
                 <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
-                  Выберите уровень сложности текста
+                  {i18n.settings.ai.difficultyHint}
                 </p>
               </div>
             </div>
@@ -192,7 +213,7 @@ function Settings() {
             <div
               className={`text-xs ${themeClasses.secondary} opacity-70 text-center pt-2 border-t ${themeClasses.border} border-opacity-20`}
             >
-              💡 Настройки применяются при нажатии "Новый текст" или "Сброс"
+              {i18n.settings.ai.hint}
             </div>
           </div>
         </div>
@@ -201,7 +222,7 @@ function Settings() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
-                Дополнительно
+                {i18n.settings.extrasLabel}
               </label>
               <div className="flex gap-2 flex-wrap">
                 <motion.button
@@ -214,7 +235,7 @@ function Settings() {
                       : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
                   }`}
                 >
-                  ⌨️ {settings.showKeyboard ? 'Скрыть' : 'Показать'}
+                  ⌨️ {settings.showKeyboard ? i18n.settings.keyboardToggle.hide : i18n.settings.keyboardToggle.show}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -227,14 +248,14 @@ function Settings() {
                       : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
                   } ${isQuoteMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  🤖 {settings.useAI ? 'Вкл' : 'Выкл'}
+                  🤖 {settings.useAI ? i18n.settings.aiToggle.on : i18n.settings.aiToggle.off}
                 </motion.button>
               </div>
             </div>
 
             <div className="space-y-2">
               <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
-                Действия
+                {i18n.settings.actionsLabel}
               </label>
               <div className="flex gap-2 flex-wrap">
                 <motion.button
@@ -246,7 +267,7 @@ function Settings() {
                     isGeneratingAI || isQuoteBlocked ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
-                  {isGeneratingAI ? '⏳ Генерация...' : 'Новый текст'}
+                  {isGeneratingAI ? i18n.settings.actions.generating : i18n.settings.actions.newText}
                 </motion.button>
                 <motion.button
                   whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
@@ -257,12 +278,12 @@ function Settings() {
                     isGeneratingAI || isQuoteBlocked ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
-                  {isGeneratingAI ? '⏳ Генерация...' : 'Сброс'}
+                  {isGeneratingAI ? i18n.settings.actions.generating : i18n.settings.actions.reset}
                 </motion.button>
               </div>
               {isQuoteMode && (
                 <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
-                  Для режима «Цитата» нужен включенный AI и заполненная тематика.
+                  {i18n.settings.quoteRequirement}
                 </p>
               )}
             </div>

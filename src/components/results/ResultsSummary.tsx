@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { resultsViewConfig } from '../../config/resultsView'
+import { useI18n } from '../../hooks/useI18n'
 
 interface ResultsSummaryProps {
   segments: string[]
@@ -9,9 +10,10 @@ interface ResultsSummaryProps {
   }
 }
 
-const { animation, labels } = resultsViewConfig
+const { animation } = resultsViewConfig
 
 function ResultsSummary({ segments, themeClasses }: ResultsSummaryProps) {
+  const i18n = useI18n()
   return (
     <motion.p
       initial={{ opacity: 0, y: animation.containerYOffset }}
@@ -22,11 +24,11 @@ function ResultsSummary({ segments, themeClasses }: ResultsSummaryProps) {
       {segments.map((segment, index) => {
         const isLast = index === segments.length - 1
         return (
-          <span key={`${index}-${segment}`}>
-            <span className={isLast ? themeClasses.primary : themeClasses.secondary}>{segment}</span>
-            {!isLast && <span className="px-2">{labels.summarySeparator}</span>}
-          </span>
-        )
+            <span key={`${index}-${segment}`}>
+              <span className={isLast ? themeClasses.primary : themeClasses.secondary}>{segment}</span>
+              {!isLast && <span className="px-2">{i18n.results.summarySeparator}</span>}
+            </span>
+          )
       })}
     </motion.p>
   )

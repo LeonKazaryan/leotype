@@ -1,5 +1,7 @@
 import { prisma } from '../db/prisma.js'
 import { dictionaryConfig, DictionaryDifficulty } from '../config/dictionary.js'
+import { languageConfig } from '../config/language.js'
+import type { AppLanguage } from '../config/language.js'
 import { dictionaryRepository } from '../repositories/dictionaryRepository.js'
 import { extractNormalizedWords, sampleArray, uniqueWords } from '../utils/wordUtils.js'
 
@@ -12,16 +14,17 @@ const isAllowedDifficulty = (difficulty: string): difficulty is DictionaryDiffic
 }
 
 export const dictionaryService = {
-    async getRandomWords(params: { difficulty: DictionaryDifficulty; count: number }) {
-        const { difficulty, count } = params
+    async getRandomWords(params: { difficulty: DictionaryDifficulty; count: number; language?: AppLanguage }) {
+        const { difficulty, count, language } = params
         if (count <= 0) {
             return { words: [], totalAvailable: 0 }
         }
 
+        const resolvedLanguage = languageConfig.normalizeLanguage(language)
         const entries = await dictionaryRepository.findByDifficulty(
             prisma,
             difficulty,
-            dictionaryConfig.language,
+            resolvedLanguage,
             dictionaryConfig.source
         )
 
@@ -34,8 +37,8 @@ export const dictionaryService = {
         }
     },
 
-    async ingestGeneratedText(params: { text: string; difficulty: string; mode: string }) {
-        const { text, difficulty, mode } = params
+    async ingestGeneratedText(params: { text: string; difficulty: string; mode: string; language?: AppLanguage }) {
+        const { text, difficulty, mode, language } = params
 
         if (!canIngestMode(mode)) {
             return
@@ -52,11 +55,13 @@ export const dictionaryService = {
 
         const sampleLimit = Math.min(dictionaryConfig.wordsPerGame, dictionaryConfig.maxPerDifficulty)
 
+        const resolvedLanguage = languageConfig.normalizeLanguage(language)
+
         await prisma.$transaction(async (tx) => {
             const existingEntries = await dictionaryRepository.findByDifficulty(
                 tx,
                 difficulty,
-                dictionaryConfig.language,
+                resolvedLanguage,
                 dictionaryConfig.source
             )
 
@@ -85,7 +90,7 @@ export const dictionaryService = {
                     tx,
                     insertable,
                     difficulty,
-                    dictionaryConfig.language,
+                    resolvedLanguage,
                     dictionaryConfig.source
                 )
                 return
@@ -105,7 +110,7 @@ export const dictionaryService = {
                 tx,
                 wordsToInsert.slice(0, idsToDelete.length),
                 difficulty,
-                dictionaryConfig.language,
+                resolvedLanguage,
                 dictionaryConfig.source
             )
         })

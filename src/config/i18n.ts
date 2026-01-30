@@ -1,0 +1,298 @@
+import type { LanguageCode } from '../types'
+
+const translations = {
+  ru: {
+    header: {
+      login: 'Войти',
+      logout: 'Выйти',
+      register: 'Регистрация',
+      tagline: 'Тренировка скорости печати нового уровня',
+    },
+    common: {
+      close: 'Закрыть',
+      ok: 'Понятно',
+    },
+    language: {
+      label: 'Язык',
+      options: {
+        ru: 'Русский',
+        en: 'Английский',
+      },
+    },
+    theme: {
+      label: 'Тема',
+      options: {
+        dark: 'Темная',
+        light: 'Светлая',
+        neon: 'Неон',
+        ocean: 'Океан',
+        forest: 'Лес',
+      },
+    },
+    settings: {
+      modeLabel: 'Режим',
+      modeOptions: {
+        time: 'Время',
+        words: 'Слова',
+        quote: 'Цитата',
+      },
+      timeLabel: 'Время (сек)',
+      wordsLabel: 'Слов',
+      ai: {
+        title: 'Настройки AI',
+        topicLabel: 'Тематика',
+        topicPlaceholder: 'Например: программирование, наука, история...',
+        topicHint: 'Укажите тему для генерации текста',
+        difficultyLabel: 'Сложность',
+        difficultyOptions: {
+          easy: 'Легкая',
+          medium: 'Средняя',
+          hard: 'Сложная',
+        },
+        difficultyHint: 'Выберите уровень сложности текста',
+        hint: '💡 Настройки применяются при нажатии "Новый текст" или "Сброс"',
+      },
+      extrasLabel: 'Дополнительно',
+      keyboardToggle: {
+        show: 'Показать',
+        hide: 'Скрыть',
+      },
+      aiToggle: {
+        on: 'Вкл',
+        off: 'Выкл',
+      },
+      actionsLabel: 'Действия',
+      actions: {
+        newText: 'Новый текст',
+        reset: 'Сброс',
+        generating: '⏳ Генерация...',
+      },
+      quoteRequirement: 'Для режима «Цитата» нужен включенный AI и заполненная тематика.',
+    },
+    typing: {
+      generatingTitle: 'Генерация текста',
+      generatingHint: 'Пожалуйста, подождите...',
+      startHint: 'Начните печатать, чтобы начать тест',
+    },
+    timer: {
+      backToMenu: 'Вернуться в меню',
+      menu: 'Меню',
+      timeUnitShort: 'с',
+    },
+    keyboard: {
+      title: 'Виртуальная клавиатура',
+    },
+    dictionary: {
+      unavailableTitle: 'Словарь временно недоступен',
+      unavailableBody:
+        'В словаре недостаточно слов для выбранной сложности. Включите AI и запустите несколько игр, чтобы заполнить словарь.',
+    },
+    auth: {
+      title: {
+        register: 'Регистрация',
+        login: 'Вход',
+      },
+      tagline: 'Минималистично. Быстро. По делу.',
+      tabs: {
+        register: 'Регистрация',
+        login: 'Вход',
+      },
+      usernameLabel: 'Username (уникальный)',
+      usernamePlaceholder: 'например: leon',
+      passwordLabel: 'Пароль',
+      submit: {
+        register: 'Создать аккаунт',
+        login: 'Войти',
+        submitting: '⏳ Обработка...',
+      },
+      success: {
+        register: 'Аккаунт создан. Ты в системе.',
+        login: 'Вход выполнен. Добро пожаловать.',
+      },
+      validation: {
+        usernameMin: (min: number) => `Минимум ${min} символа`,
+        passwordMin: (min: number) => `Минимум ${min} символов`,
+      },
+      errors: {
+        request: 'Ошибка запроса',
+        serverConnection: 'Не удалось подключиться к серверу',
+      },
+      errorCodes: {
+        USERNAME_MIN: (min: number) => `Username должен быть минимум ${min} символа`,
+        PASSWORD_MIN: (min: number) => `Пароль должен быть минимум ${min} символов`,
+        USERNAME_TAKEN: 'Этот username уже занят',
+        INVALID_CREDENTIALS: 'Неверный username или пароль',
+        REQUIRED_FIELDS: 'Username и пароль обязательны',
+        SERVER_ERROR: 'Ошибка сервера',
+      },
+    },
+    results: {
+      wpm: 'WPM',
+      perfectRun: 'ИДЕАЛЬНЫЙ ЗАБЕГ',
+      accuracy: 'Точность',
+      runAgain: 'Еще раз',
+      settings: 'Настройки',
+      history: 'История',
+      historySoonSuffix: ' (скоро)',
+      summaryPrefix: 'Вы закончили за',
+      summarySeparator: '•',
+      timeUnit: 'с',
+      characters: 'символов набрано',
+      cleanRun: 'Без ошибок. Чистый прогон.',
+      imperfectRun: 'Есть ошибки. Продолжайте.',
+      chartWpm: 'WPM',
+      chartTime: 'Время',
+    },
+  },
+  en: {
+    header: {
+      login: 'Log in',
+      logout: 'Log out',
+      register: 'Register',
+      tagline: 'A new level of typing speed training',
+    },
+    common: {
+      close: 'Close',
+      ok: 'Got it',
+    },
+    language: {
+      label: 'Language',
+      options: {
+        ru: 'Russian',
+        en: 'English',
+      },
+    },
+    theme: {
+      label: 'Theme',
+      options: {
+        dark: 'Dark',
+        light: 'Light',
+        neon: 'Neon',
+        ocean: 'Ocean',
+        forest: 'Forest',
+      },
+    },
+    settings: {
+      modeLabel: 'Mode',
+      modeOptions: {
+        time: 'Time',
+        words: 'Words',
+        quote: 'Quote',
+      },
+      timeLabel: 'Time (sec)',
+      wordsLabel: 'Words',
+      ai: {
+        title: 'AI settings',
+        topicLabel: 'Topic',
+        topicPlaceholder: 'e.g. programming, science, history...',
+        topicHint: 'Provide a topic for text generation',
+        difficultyLabel: 'Difficulty',
+        difficultyOptions: {
+          easy: 'Easy',
+          medium: 'Medium',
+          hard: 'Hard',
+        },
+        difficultyHint: 'Choose text difficulty',
+        hint: '💡 Settings apply when you click "New text" or "Reset"',
+      },
+      extrasLabel: 'Extras',
+      keyboardToggle: {
+        show: 'Show',
+        hide: 'Hide',
+      },
+      aiToggle: {
+        on: 'On',
+        off: 'Off',
+      },
+      actionsLabel: 'Actions',
+      actions: {
+        newText: 'New text',
+        reset: 'Reset',
+        generating: '⏳ Generating...',
+      },
+      quoteRequirement: 'Quote mode requires AI on and a topic.',
+    },
+    typing: {
+      generatingTitle: 'Generating text',
+      generatingHint: 'Please wait...',
+      startHint: 'Start typing to begin the test',
+    },
+    timer: {
+      backToMenu: 'Back to menu',
+      menu: 'Menu',
+      timeUnitShort: 's',
+    },
+    keyboard: {
+      title: 'Virtual keyboard',
+    },
+    dictionary: {
+      unavailableTitle: 'Dictionary temporarily unavailable',
+      unavailableBody:
+        'Not enough words for the selected difficulty. Enable AI and run a few games to fill the dictionary.',
+    },
+    auth: {
+      title: {
+        register: 'Register',
+        login: 'Log in',
+      },
+      tagline: 'Minimal. Fast. To the point.',
+      tabs: {
+        register: 'Register',
+        login: 'Log in',
+      },
+      usernameLabel: 'Username (unique)',
+      usernamePlaceholder: 'e.g. leon',
+      passwordLabel: 'Password',
+      submit: {
+        register: 'Create account',
+        login: 'Log in',
+        submitting: '⏳ Processing...',
+      },
+      success: {
+        register: 'Account created. You are signed in.',
+        login: 'Signed in. Welcome.',
+      },
+      validation: {
+        usernameMin: (min: number) => `Minimum ${min} characters`,
+        passwordMin: (min: number) => `Minimum ${min} characters`,
+      },
+      errors: {
+        request: 'Request error',
+        serverConnection: 'Cannot connect to server',
+      },
+      errorCodes: {
+        USERNAME_MIN: (min: number) => `Username must be at least ${min} characters`,
+        PASSWORD_MIN: (min: number) => `Password must be at least ${min} characters`,
+        USERNAME_TAKEN: 'This username is already taken',
+        INVALID_CREDENTIALS: 'Invalid username or password',
+        REQUIRED_FIELDS: 'Username and password are required',
+        SERVER_ERROR: 'Server error',
+      },
+    },
+    results: {
+      wpm: 'WPM',
+      perfectRun: 'PERFECT RUN',
+      accuracy: 'Accuracy',
+      runAgain: 'Run again',
+      settings: 'Settings',
+      history: 'History',
+      historySoonSuffix: ' (soon)',
+      summaryPrefix: 'You finished in',
+      summarySeparator: '•',
+      timeUnit: 's',
+      characters: 'characters typed',
+      cleanRun: 'No mistakes. Clean run.',
+      imperfectRun: 'Mistakes detected. Keep grinding.',
+      chartWpm: 'WPM',
+      chartTime: 'Time',
+    },
+  },
+}
+
+export type I18nDictionary = typeof translations.en
+
+export const getTranslations = (language: LanguageCode): I18nDictionary => {
+  return translations[language] || translations.en
+}
+
+export { translations }

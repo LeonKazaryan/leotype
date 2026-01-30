@@ -5,6 +5,7 @@ import { getThemeClasses } from '../utils/themes'
 import { areCharsEquivalent } from '../utils/charCompare'
 import TextDisplay from './TextDisplay'
 import Timer from './Timer'
+import { useI18n } from '../hooks/useI18n'
 
 function TypingTest() {
   const text = useTypingStore((state) => state.text)
@@ -13,6 +14,7 @@ function TypingTest() {
   const startTest = useTypingStore((state) => state.startTest)
   const updateInput = useTypingStore((state) => state.updateInput)
   const finishTest = useTypingStore((state) => state.finishTest)
+  const i18n = useI18n()
   
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [caretPosition, setCaretPosition] = useState(0)
@@ -146,7 +148,7 @@ function TypingTest() {
               animate={{ opacity: 1 }}
               className={`text-xl font-semibold ${themeClasses.primary} mb-2`}
             >
-              Генерация текста
+              {i18n.typing.generatingTitle}
             </motion.p>
             <motion.p
               initial={{ opacity: 0 }}
@@ -154,7 +156,7 @@ function TypingTest() {
               transition={{ delay: 0.2 }}
               className={`text-sm ${themeClasses.secondary} opacity-70`}
             >
-              Пожалуйста, подождите...
+              {i18n.typing.generatingHint}
             </motion.p>
           </motion.div>
         )}
@@ -165,7 +167,7 @@ function TypingTest() {
             exit={{ opacity: 0 }}
             className={`text-center ${themeClasses.secondary} text-lg`}
           >
-            Начните печатать, чтобы начать тест
+            {i18n.typing.startHint}
           </motion.div>
         )}
       </AnimatePresence>

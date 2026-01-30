@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
+import { useI18n } from '../hooks/useI18n'
 
 type DictionaryUnavailableModalProps = {
   open: boolean
@@ -10,6 +11,7 @@ type DictionaryUnavailableModalProps = {
 function DictionaryUnavailableModal({ open, onClose }: DictionaryUnavailableModalProps) {
   const theme = useTypingStore((state) => state.settings.theme)
   const themeClasses = getThemeClasses(theme)
+  const i18n = useI18n()
 
   return (
     <AnimatePresence>
@@ -35,18 +37,17 @@ function DictionaryUnavailableModal({ open, onClose }: DictionaryUnavailableModa
             transition={{ duration: 0.2 }}
           >
             <h2 className={`text-xl font-semibold ${themeClasses.primary} mb-3`}>
-              Словарь временно недоступен
+              {i18n.dictionary.unavailableTitle}
             </h2>
             <p className={`text-sm ${themeClasses.secondary} mb-5`}>
-              В словаре недостаточно слов для выбранной сложности. Включите AI и
-              запустите несколько игр, чтобы заполнить словарь.
+              {i18n.dictionary.unavailableBody}
             </p>
             <div className="flex justify-end">
               <button
                 onClick={onClose}
                 className={`px-4 py-2 rounded-lg border ${themeClasses.border} ${themeClasses.primary}`}
               >
-                Понятно
+                {i18n.common.ok}
               </button>
             </div>
           </motion.div>

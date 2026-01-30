@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import AnimatedNumber from '../AnimatedNumber'
 import { resultsViewConfig } from '../../config/resultsView'
+import { useI18n } from '../../hooks/useI18n'
 
 interface ResultsHeroProps {
   wpm: number
@@ -13,9 +14,10 @@ interface ResultsHeroProps {
   }
 }
 
-const { animation, icons, labels, format } = resultsViewConfig
+const { animation, icons, format } = resultsViewConfig
 
 function ResultsHero({ wpm, accuracy, isPerfect, themeClasses }: ResultsHeroProps) {
+  const i18n = useI18n()
   return (
     <div className="text-center space-y-3">
       <motion.div
@@ -29,7 +31,7 @@ function ResultsHero({ wpm, accuracy, isPerfect, themeClasses }: ResultsHeroProp
           <AnimatedNumber value={wpm} decimals={format.wpmDecimals} />
         </span>
         <span className={`text-xl md:text-2xl font-semibold ${themeClasses.secondary}`}>
-          {labels.wpm}
+          {i18n.results.wpm}
         </span>
       </motion.div>
 
@@ -40,7 +42,7 @@ function ResultsHero({ wpm, accuracy, isPerfect, themeClasses }: ResultsHeroProp
           transition={{ duration: animation.containerDuration, ease: animation.ease, delay: animation.perfectDelay }}
           className={`text-sm md:text-base tracking-widest ${themeClasses.primary}`}
         >
-          {labels.perfectRun}
+          {i18n.results.perfectRun}
         </motion.div>
       )}
 
@@ -50,7 +52,7 @@ function ResultsHero({ wpm, accuracy, isPerfect, themeClasses }: ResultsHeroProp
         transition={{ duration: animation.containerDuration, ease: animation.ease, delay: animation.accuracyDelay }}
         className={`text-base md:text-lg ${themeClasses.secondary}`}
       >
-        {labels.accuracy}{' '}
+        {i18n.results.accuracy}{' '}
         <span className={`font-semibold ${themeClasses.primary}`}>
           <AnimatedNumber value={accuracy} decimals={format.accuracyDecimals} />%
         </span>

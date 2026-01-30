@@ -8,6 +8,10 @@ import jwt from 'jsonwebtoken'
 import { prisma } from './db/prisma.js'
 import { dictionaryRouter } from './routes/dictionaryRoutes.js'
 import { dictionaryService } from './services/dictionaryService.js'
+import { languageConfig } from './config/language.js'
+import { buildAIPrompt } from './config/aiPrompts.js'
+import { authErrorCodes } from './config/errorCodes.js'
+import { authConfig } from './config/auth.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -76,17 +80,23 @@ app.post('/api/auth/register', async (req, res) => {
         const rawPassword = typeof req.body?.password === 'string' ? req.body.password : ''
         const username = rawUsername.trim()
 
-        if (username.length < 3) {
-            return res.status(400).json({ error: 'Username должен быть минимум 3 символа' })
+        if (username.length < authConfig.usernameMin) {
+            return res.status(400).json({
+                error: `Username must be at least ${authConfig.usernameMin} characters`,
+                code: authErrorCodes.USERNAME_MIN,
+            })
         }
 
-        if (rawPassword.length < 6) {
-            return res.status(400).json({ error: 'Пароль должен быть минимум 6 символов' })
+        if (rawPassword.length < authConfig.passwordMin) {
+            return res.status(400).json({
+                error: `Password must be at least ${authConfig.passwordMin} characters`,
+                code: authErrorCodes.PASSWORD_MIN,
+            })
         }
 
         const existing = await prisma.user.findUnique({ where: { username } })
         if (existing) {
-            return res.status(409).json({ error: 'Этот username уже занят' })
+            return res.status(409).json({ error: 'Username already taken', code: authErrorCodes.USERNAME_TAKEN })
         }
 
         const passwordHash = await bcrypt.hash(rawPassword, 10)
@@ -108,7 +118,7 @@ app.post('/api/auth/register', async (req, res) => {
         return res.status(201).json({ token, user })
     } catch (error) {
         console.error('Register error:', error)
-        return res.status(500).json({ error: 'Ошибка сервера' })
+        return res.status(500).json({ error: 'Server error', code: authErrorCodes.SERVER_ERROR })
     }
 })
 
@@ -119,7 +129,7 @@ app.post('/api/auth/login', async (req, res) => {
         const username = rawUsername.trim()
 
         if (!username || !rawPassword) {
-            return res.status(400).json({ error: 'Username и пароль обязательны' })
+            return res.status(400).json({ error: 'Username and password are required', code: authErrorCodes.REQUIRED_FIELDS })
         }
 
         const user = await prisma.user.findUnique({
@@ -132,12 +142,12 @@ app.post('/api/auth/login', async (req, res) => {
         })
 
         if (!user) {
-            return res.status(401).json({ error: 'Неверный username или пароль' })
+            return res.status(401).json({ error: 'Invalid username or password', code: authErrorCodes.INVALID_CREDENTIALS })
         }
 
         const passwordOk = await bcrypt.compare(rawPassword, user.passwordHash)
         if (!passwordOk) {
-            return res.status(401).json({ error: 'Неверный username или пароль' })
+            return res.status(401).json({ error: 'Invalid username or password', code: authErrorCodes.INVALID_CREDENTIALS })
         }
 
         const token = jwt.sign({ sub: user.id, username: user.username }, getJwtSecret(), {
@@ -147,7 +157,7 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(200).json({ token, user: { id: user.id, username: user.username } })
     } catch (error) {
         console.error('Login error:', error)
-        return res.status(500).json({ error: 'Ошибка сервера' })
+        return res.status(500).json({ error: 'Server error', code: authErrorCodes.SERVER_ERROR })
     }
 })
 
@@ -156,7 +166,7 @@ const MIN_REQUEST_INTERVAL = 3000
 const requestQueue: Array<{
     resolve: (value: string) => void
     reject: (error: Error) => void
-    params: { mode: string; count: number; topic: string; difficulty: string }
+    params: { mode: string; count: number; topic: string; difficulty: string; language: string }
 }> = []
 let isProcessingQueue = false
 
@@ -203,39 +213,31 @@ async function makeXAIRequest(params: {
     count: number
     topic: string
     difficulty: string
+    language: string
 }): Promise<string> {
-    const { mode, count, topic, difficulty } = params
+    const { mode, count, topic, difficulty, language } = params
     const apiKey = process.env.XAI_API_KEY
 
     if (!apiKey) {
         throw new Error('XAI API key not configured on server')
     }
 
-    const difficultyMap: Record<string, string> = {
-        easy: 'простые и короткие слова, базовый уровень',
-        medium: 'средней сложности слова и фразы',
-        hard: 'сложные технические термины и длинные предложения',
-    }
+    const resolvedLanguage = languageConfig.normalizeLanguage(language)
+    const normalizedMode = (mode === 'quote' || mode === 'words' || mode === 'time' ? mode : 'time') as
+        'time' | 'words' | 'quote'
+    const normalizedDifficulty = (
+        difficulty === 'easy' || difficulty === 'medium' || difficulty === 'hard'
+            ? difficulty
+            : 'medium'
+    ) as 'easy' | 'medium' | 'hard'
 
-    const difficultyDesc = difficultyMap[difficulty] || difficultyMap.medium
-    const trimmedTopic = topic.trim()
-    const hasTopic = trimmedTopic.length > 0
-
-    let prompt = ''
-
-    if (mode === 'quote') {
-        prompt = hasTopic
-            ? `Сгенерируй одну короткую мотивирующую цитату на тему "${trimmedTopic}" на русском языке. Сложность: ${difficultyDesc}. Только цитату, без кавычек и дополнительных слов.`
-            : `Сгенерируй одну короткую мотивирующую цитату на русском языке. Сложность: ${difficultyDesc}. Только цитату, без кавычек и дополнительных слов.`
-    } else if (mode === 'words') {
-        prompt = hasTopic
-            ? `Сгенерируй список из ${count} случайных русских слов на тему "${trimmedTopic}". Сложность: ${difficultyDesc}. Слова должны быть разделены пробелами, без нумерации и дополнительных символов.`
-            : `Сгенерируй список из ${count} случайных русских слов на русском языке. Сложность: ${difficultyDesc}. Слова должны быть разделены пробелами, без нумерации и дополнительных символов.`
-    } else {
-        prompt = hasTopic
-            ? `Сгенерируй связный текст из примерно ${count} слов на русском языке на тему "${trimmedTopic}". Сложность: ${difficultyDesc}. Только текст, без заголовков и дополнительных слов.`
-            : `Сгенерируй связный текст из примерно ${count} слов на русском языке. Сложность: ${difficultyDesc}. Только текст, без заголовков и дополнительных слов.`
-    }
+    const { prompt, system } = buildAIPrompt({
+        mode: normalizedMode,
+        count,
+        topic,
+        difficulty: normalizedDifficulty,
+        language: resolvedLanguage,
+    })
 
     const now = Date.now()
     const timeSinceLastRequest = now - lastRequestTime
@@ -258,14 +260,14 @@ async function makeXAIRequest(params: {
             messages: [
                 {
                     role: 'system',
-                    content: 'Ты помощник для генерации текста для тренировки печати. Отвечай только запрошенным текстом, без дополнительных объяснений.',
+                    content: system,
                 },
                 {
                     role: 'user',
                     content: prompt,
                 },
             ],
-            max_tokens: mode === 'quote' ? 50 : count * 10,
+            max_tokens: normalizedMode === 'quote' ? 50 : count * 10,
             temperature: 0.8,
             stream: false,
         }),
@@ -351,7 +353,7 @@ async function makeXAIRequest(params: {
 
     console.log(`✅ Successfully generated ${generatedText.length} characters`)
     try {
-        await dictionaryService.ingestGeneratedText({ text: generatedText, difficulty, mode })
+        await dictionaryService.ingestGeneratedText({ text: generatedText, difficulty, mode, language: resolvedLanguage })
     } catch (error) {
         console.error('❌ Failed to ingest dictionary words:', error)
     }
@@ -370,8 +372,9 @@ async function processQueue() {
         if (!request) continue
 
         try {
-            const topicLabel = request.params.topic.trim() || 'без темы'
-            console.log(`📝 Processing request: ${topicLabel} (${request.params.difficulty})`)
+            const topicLabel = request.params.topic.trim() || 'no topic'
+            const languageLabel = languageConfig.normalizeLanguage(request.params.language)
+            console.log(`📝 Processing request: ${topicLabel} (${request.params.difficulty}, ${languageLabel})`)
             const result = await makeXAIRequest(request.params)
             request.resolve(result)
         } catch (error) {
@@ -389,7 +392,7 @@ async function processQueue() {
 
 app.post('/api/generate-text', async (req: express.Request, res: express.Response) => {
     try {
-        const { mode, count, topic, difficulty } = req.body
+        const { mode, count, topic, difficulty, language } = req.body
 
         if (!mode || typeof count !== 'number' || typeof topic !== 'string' || !difficulty) {
             return res.status(400).json({ error: 'Invalid request parameters' })
@@ -397,9 +400,15 @@ app.post('/api/generate-text', async (req: express.Request, res: express.Respons
         if (mode === 'quote' && topic.trim().length === 0) {
             return res.status(400).json({ error: 'Topic is required for quote mode' })
         }
+        if (typeof language === 'string' && !languageConfig.isSupportedLanguage(language)) {
+            return res.status(400).json({ error: 'Invalid language' })
+        }
+        const resolvedLanguage = typeof language === 'string'
+            ? language
+            : languageConfig.defaultLanguage
 
         const result = await new Promise<string>((resolve, reject) => {
-            requestQueue.push({ resolve, reject, params: { mode, count, topic, difficulty } })
+            requestQueue.push({ resolve, reject, params: { mode, count, topic, difficulty, language: resolvedLanguage } })
             processQueue()
         })
 

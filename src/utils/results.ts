@@ -1,5 +1,6 @@
 import { resultsViewConfig } from '../config/resultsView'
-import { TestStats } from '../types'
+import { getTranslations } from '../config/i18n'
+import type { LanguageCode, TestStats } from '../types'
 
 export type ChartPoint = { x: number; y: number }
 
@@ -13,7 +14,7 @@ export type ChartData = {
   values: number[]
 }
 
-const { chart, format, labels, series } = resultsViewConfig
+const { chart, format, series } = resultsViewConfig
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
 
@@ -87,7 +88,8 @@ export const buildChartData = (values: number[]): ChartData => {
   }
 }
 
-export const buildSummarySegments = (stats: TestStats): string[] => {
+export const buildSummarySegments = (stats: TestStats, language: LanguageCode): string[] => {
+  const labels = getTranslations(language).results
   const timeValue = stats.time.toFixed(format.timeDecimals)
   const typedCharacters = getTypedCharacters(stats)
   const description = isPerfectRun(stats) ? labels.cleanRun : labels.imperfectRun

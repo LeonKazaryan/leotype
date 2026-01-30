@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
+import { useI18n } from '../hooks/useI18n'
 
 type HeaderProps = {
   onOpenRegister: () => void
@@ -14,12 +15,14 @@ type HeaderProps = {
 function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
   const theme = useTypingStore((state) => state.settings.theme)
   const themeClasses = getThemeClasses(theme)
+  const i18n = useI18n()
   const [hoverMenu, setHoverMenu] = useState(false)
   const [authHover, setAuthHover] = useState(false)
   const [typedText, setTypedText] = useState('')
 
   useEffect(() => {
-    const word = 'Войти'
+    const word = i18n.header.login
+    setTypedText('')
     let index = 0
     const timer = window.setInterval(() => {
       index += 1
@@ -30,7 +33,7 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
     }, 300)
 
     return () => window.clearInterval(timer)
-  }, [])
+  }, [i18n.header.login])
 
   return (
     <motion.header
@@ -61,12 +64,12 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
                   className={`min-w-[180px] rounded-xl ${themeClasses.card} border ${themeClasses.border} shadow-2xl ring-1 ring-black/20`}
                 >
                   <button
-                    type="button"
-                    onClick={onLogout}
-                    className={`w-full text-left px-4 py-3 text-sm ${themeClasses.secondary} hover:${themeClasses.primary} transition-colors`}
-                  >
-                    Выйти
-                  </button>
+                  type="button"
+                  onClick={onLogout}
+                  className={`w-full text-left px-4 py-3 text-sm ${themeClasses.secondary} hover:${themeClasses.primary} transition-colors`}
+                >
+                  {i18n.header.logout}
+                </button>
                 </div>
               </div>
             )}
@@ -88,7 +91,7 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
                   className="inline-flex items-center gap-2"
                 >
                   <span className="inline-flex items-center gap-1">
-                    {typedText || 'Войти'}
+                    {typedText || i18n.header.login}
                     <motion.span
                       animate={{ opacity: [1, 0.2, 1] }}
                       transition={{ duration: 0.9, repeat: Infinity }}
@@ -113,7 +116,7 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
                   transition={{ duration: 0.25 }}
                   className="ml-2 inline-block overflow-hidden whitespace-nowrap"
                 >
-                  Регистрация
+                  {i18n.header.register}
                 </motion.span>
               </div>
             </span>
@@ -154,7 +157,7 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
         transition={{ delay: 0.3 }}
         className={`text-xl ${themeClasses.secondary}`}
       >
-        Тренировка скорости печати нового уровня
+        {i18n.header.tagline}
       </motion.p>
 
       <div className="mt-6" />

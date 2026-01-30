@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { resultsViewConfig } from '../../config/resultsView'
+import { useI18n } from '../../hooks/useI18n'
 
 interface ResultsActionsProps {
   onRunAgain: () => void
@@ -12,9 +13,10 @@ interface ResultsActionsProps {
   }
 }
 
-const { animation, icons, labels } = resultsViewConfig
+const { animation, icons } = resultsViewConfig
 
 function ResultsActions({ onRunAgain, onSettings, themeClasses }: ResultsActionsProps) {
+  const i18n = useI18n()
   return (
     <motion.div
       initial={{ opacity: 0, y: animation.containerYOffset }}
@@ -31,7 +33,7 @@ function ResultsActions({ onRunAgain, onSettings, themeClasses }: ResultsActions
       >
         <span className="inline-flex items-center gap-3">
           <span className={themeClasses.accent}>{icons.runAgain}</span>
-          {labels.runAgain}
+          {i18n.results.runAgain}
         </span>
       </motion.button>
 
@@ -45,18 +47,18 @@ function ResultsActions({ onRunAgain, onSettings, themeClasses }: ResultsActions
         >
           <span className="inline-flex items-center gap-2">
             <span className={themeClasses.accent}>{icons.settings}</span>
-            {labels.settings}
+            {i18n.results.settings}
           </span>
         </motion.button>
         <button
           className={`px-5 py-2 rounded-lg text-sm font-medium ${themeClasses.secondary} border ${themeClasses.border} opacity-50 cursor-not-allowed`}
           type="button"
           aria-disabled="true"
-          title={`${labels.history}${labels.historySoonSuffix}`}
+          title={`${i18n.results.history}${i18n.results.historySoonSuffix}`}
         >
           <span className="inline-flex items-center gap-2">
             <span className={themeClasses.accent}>{icons.history}</span>
-            {labels.history}
+            {i18n.results.history}
           </span>
         </button>
       </div>

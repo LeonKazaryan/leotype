@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import { TestSettings, TestState, TestMode, Theme, AIDifficulty } from '../types'
+import type { TestSettings, TestState, TestMode, Theme, AIDifficulty, LanguageCode } from '../types'
 import { generateText } from '../utils/textGenerator'
 import { generateTextWithAI } from '../utils/aiGenerator'
 import { generateTextFromDictionary } from '../utils/dictionaryText'
 import { calculateStats } from '../utils/stats'
 import { buildWpmSeriesFromTimestamps, updateInputTimestamps } from '../utils/typingMetrics'
+import { defaultLanguage } from '../config/language'
 
 interface TypingStore {
     settings: TestSettings
@@ -17,6 +18,7 @@ interface TypingStore {
     setTime: (time: number) => void
     setWords: (words: number) => void
     setTheme: (theme: Theme) => void
+    setLanguage: (language: LanguageCode) => void
     toggleKeyboard: () => void
     toggleSound: () => void
     toggleAI: () => void
@@ -43,6 +45,7 @@ const defaultSettings: TestSettings = {
     useAI: false,
     aiTopic: '',
     aiDifficulty: 'medium',
+    language: defaultLanguage,
 }
 
 const defaultTestState: TestState = {
@@ -80,7 +83,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 : settings.words
 
             set({ testState: { ...get().testState, isGeneratingAI: true }, dictionaryUnavailable: false })
-            generateTextFromDictionary(settings.mode, wordCount, settings.aiDifficulty)
+            generateTextFromDictionary(settings.mode, wordCount, settings.aiDifficulty, settings.language)
                 .then((text) => {
                     set({
                         text,
@@ -114,7 +117,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 : settings.words
 
             set({ testState: { ...get().testState, isGeneratingAI: true }, dictionaryUnavailable: false })
-            generateTextFromDictionary(settings.mode, wordCount, settings.aiDifficulty)
+            generateTextFromDictionary(settings.mode, wordCount, settings.aiDifficulty, settings.language)
                 .then((text) => {
                     set({
                         text,
@@ -133,6 +136,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
     setTheme: (theme) => {
         set((state) => ({ settings: { ...state.settings, theme } }))
+    },
+
+    setLanguage: (language) => {
+        set((state) => ({ settings: { ...state.settings, language } }))
     },
 
     toggleKeyboard: () => {
@@ -291,7 +298,13 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 })
             }
 
-            generateTextWithAI(updatedSettings.mode, wordCount, updatedSettings.aiTopic, updatedSettings.aiDifficulty)
+            generateTextWithAI(
+                updatedSettings.mode,
+                wordCount,
+                updatedSettings.aiTopic,
+                updatedSettings.aiDifficulty,
+                updatedSettings.language
+            )
                 .then((text) => {
                     if (import.meta.env.DEV) {
                         console.log('✅ AI text generated successfully (resetTest)')
@@ -307,7 +320,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                         const fallbackWordCount = updatedSettings.mode === 'time'
                             ? Math.ceil(updatedSettings.time * 2.5)
                             : updatedSettings.words
-                        const fallbackText = generateText(updatedSettings.mode, fallbackWordCount)
+                        const fallbackText = generateText(updatedSettings.mode, fallbackWordCount, updatedSettings.language)
                         set({
                             text: fallbackText,
                             testState: { ...get().testState, isGeneratingAI: false },
@@ -327,7 +340,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 testState: { ...get().testState, isGeneratingAI: true },
             })
 
-            generateTextFromDictionary(updatedSettings.mode, wordCount, updatedSettings.aiDifficulty)
+            generateTextFromDictionary(updatedSettings.mode, wordCount, updatedSettings.aiDifficulty, updatedSettings.language)
                 .then((text) => {
                     set({
                         text,
@@ -381,7 +394,13 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 })
             }
 
-            generateTextWithAI(updatedSettings.mode, wordCount, updatedSettings.aiTopic, updatedSettings.aiDifficulty)
+            generateTextWithAI(
+                updatedSettings.mode,
+                wordCount,
+                updatedSettings.aiTopic,
+                updatedSettings.aiDifficulty,
+                updatedSettings.language
+            )
                 .then((text) => {
                     if (import.meta.env.DEV) {
                         console.log('✅ AI text generated successfully (generateNewText)')
@@ -397,7 +416,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                         const fallbackWordCount = updatedSettings.mode === 'time'
                             ? Math.ceil(updatedSettings.time * 2.5)
                             : updatedSettings.words
-                        const fallbackText = generateText(updatedSettings.mode, fallbackWordCount)
+                        const fallbackText = generateText(updatedSettings.mode, fallbackWordCount, updatedSettings.language)
                         set({
                             text: fallbackText,
                             testState: { ...get().testState, isGeneratingAI: false },
@@ -417,7 +436,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 testState: { ...get().testState, isGeneratingAI: true },
             })
 
-            generateTextFromDictionary(updatedSettings.mode, wordCount, updatedSettings.aiDifficulty)
+            generateTextFromDictionary(updatedSettings.mode, wordCount, updatedSettings.aiDifficulty, updatedSettings.language)
                 .then((text) => {
                     set({
                         text,

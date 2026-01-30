@@ -2,18 +2,15 @@ import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
 import { areCharsEquivalent, normalizeCharForKey } from '../utils/charCompare'
-
-const keyboardLayout = [
-  ['й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ъ'],
-  ['ф', 'ы', 'в', 'а', 'п', 'р', 'о', 'л', 'д', 'ж', 'э'],
-  ['я', 'ч', 'с', 'м', 'и', 'т', 'ь', 'б', 'ю', '.'],
-]
+import { keyboardLayouts } from '../config/keyboard'
+import { useI18n } from '../hooks/useI18n'
 
 function Keyboard() {
   const settings = useTypingStore((state) => state.settings)
   const testState = useTypingStore((state) => state.testState)
   const text = useTypingStore((state) => state.text)
   const themeClasses = getThemeClasses(settings.theme)
+  const i18n = useI18n()
   
   if (!settings.showKeyboard) {
     return null
@@ -51,6 +48,8 @@ function Keyboard() {
     return 'normal'
   }
   
+  const layout = keyboardLayouts[settings.language] || keyboardLayouts.ru
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -58,10 +57,10 @@ function Keyboard() {
       className={`mt-6 rounded-2xl p-6 ${themeClasses.card} border-2 ${themeClasses.border} shadow-xl`}
     >
       <h3 className={`text-lg font-semibold mb-4 ${themeClasses.primary} text-center`}>
-        Виртуальная клавиатура
+        {i18n.keyboard.title}
       </h3>
       <div className="flex flex-col items-center gap-2">
-        {keyboardLayout.map((row, rowIndex) => (
+        {layout.map((row, rowIndex) => (
           <div key={rowIndex} className="flex gap-1 justify-center">
             {row.map((key) => {
               const status = getKeyStatus(key)

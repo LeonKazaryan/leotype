@@ -1,21 +1,4 @@
 export const resultsViewConfig = {
-  labels: {
-    wpm: 'WPM',
-    perfectRun: 'PERFECT RUN',
-    accuracy: 'Accuracy',
-    runAgain: 'Run again',
-    settings: 'Settings',
-    history: 'History',
-    historySoonSuffix: ' (soon)',
-    summaryPrefix: 'You finished in',
-    summarySeparator: '•',
-    timeUnit: 's',
-    characters: 'characters typed',
-    cleanRun: 'No mistakes. Clean run.',
-    imperfectRun: 'Mistakes detected. Keep grinding.',
-    chartWpm: 'WPM',
-    chartTime: 'Time',
-  },
   icons: {
     wpm: '⚡',
     runAgain: '↻',

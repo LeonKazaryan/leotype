@@ -1,5 +1,5 @@
 import { apiBaseUrl, apiRoutes } from '../config/api'
-import type { AIDifficulty } from '../types'
+import type { AIDifficulty, LanguageCode } from '../types'
 
 interface DictionaryWordsResponse {
     words: string[]
@@ -9,10 +9,12 @@ interface DictionaryWordsResponse {
 export async function fetchDictionaryWords(params: {
     difficulty: AIDifficulty
     count: number
+    language: LanguageCode
 }): Promise<DictionaryWordsResponse> {
     const query = new URLSearchParams({
         difficulty: params.difficulty,
         count: params.count.toString(),
+        language: params.language,
     })
 
     const response = await fetch(`${apiBaseUrl}${apiRoutes.dictionaryWords}?${query.toString()}`)

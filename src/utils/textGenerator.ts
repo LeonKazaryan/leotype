@@ -1,82 +1,43 @@
-const syllables = [
-    'ба', 'бе', 'би', 'бо', 'бу', 'бы', 'бь',
-    'ва', 'ве', 'ви', 'во', 'ву', 'вы', 'вь',
-    'га', 'ге', 'ги', 'го', 'гу', 'гы',
-    'да', 'де', 'ди', 'до', 'ду', 'ды', 'дь',
-    'жа', 'же', 'жи', 'жо', 'жу', 'жи',
-    'за', 'зе', 'зи', 'зо', 'зу', 'зы', 'зь',
-    'ка', 'ке', 'ки', 'ко', 'ку', 'кы',
-    'ла', 'ле', 'ли', 'ло', 'лу', 'лы', 'ль',
-    'ма', 'ме', 'ми', 'мо', 'му', 'мы', 'мь',
-    'на', 'не', 'ни', 'но', 'ну', 'ны', 'нь',
-    'па', 'пе', 'пи', 'по', 'пу', 'пы', 'пь',
-    'ра', 'ре', 'ри', 'ро', 'ру', 'ры', 'рь',
-    'са', 'се', 'си', 'со', 'су', 'сы', 'сь',
-    'та', 'те', 'ти', 'то', 'ту', 'ты', 'ть',
-    'фа', 'фе', 'фи', 'фо', 'фу', 'фы',
-    'ха', 'хе', 'хи', 'хо', 'ху', 'хы',
-    'ца', 'це', 'ци', 'цо', 'цу', 'цы',
-    'ча', 'че', 'чи', 'чо', 'чу',
-    'ша', 'ше', 'ши', 'шо', 'шу',
-    'ща', 'ще', 'щи', 'що', 'щу',
-    'я', 'е', 'ё', 'ю', 'и', 'а', 'о', 'у', 'ы', 'э'
-]
+import { textGeneratorConfig } from '../config/textGenerator'
+import { defaultLanguage } from '../config/language'
+import type { LanguageCode, TestMode } from '../types'
 
-const endings = ['а', 'е', 'и', 'о', 'у', 'ы', 'я', 'ь', 'й']
-
-function generateRandomWord(): string {
-    const syllableCount = Math.floor(Math.random() * 3) + 2
-    let word = ''
-
-    for (let i = 0; i < syllableCount; i++) {
-        word += syllables[Math.floor(Math.random() * syllables.length)]
-    }
-
-    if (Math.random() > 0.3) {
-        word += endings[Math.floor(Math.random() * endings.length)]
-    }
-
-    return word
+const resolveLanguageConfig = (language: LanguageCode) => {
+  return textGeneratorConfig[language] || textGeneratorConfig[defaultLanguage]
 }
 
-const quotes = [
-    'Программирование — это искусство решения проблем с помощью кода.',
-    'Хороший код читается как хорошо написанная книга.',
-    'Преждевременная оптимизация — корень всех зол.',
-    'Лучший способ отладить код — это написать его правильно с первого раза.',
-    'Код пишется один раз, но читается тысячи раз.',
-    'Простота — это высшая форма изысканности.',
-    'Не повторяй себя — это основа хорошей архитектуры.',
-    'Тестирование показывает наличие багов, а не их отсутствие.',
-    'Чистый код — это не код, который компилируется, а код, который понятен.',
-    'Лучший код — это код, который не нужно писать.',
-    'Программист — это человек, который превращает кофе в код.',
-    'Отладка в два раза сложнее написания кода.',
-    'Измеряй дважды, режь один раз — это относится и к программированию.',
-    'Любой дурак может написать код, понятный компьютеру. Хорошие программисты пишут код, понятный людям.',
-    'Первое правило оптимизации: не оптимизируй. Второе правило: не оптимизируй пока.',
-    'Программирование — это не о том, чтобы знать все, а о том, чтобы знать, где искать.',
-    'Код без тестов — это легаси код, даже если он написан вчера.',
-    'Единственный способ научиться программированию — это программировать.',
-    'Хороший программист смотрит в обе стороны, переходя одностороннюю улицу.',
-    'Программирование — это навык, приобретаемый практикой, а не наблюдением.',
-]
+function generateRandomWord(language: LanguageCode): string {
+  const { syllables, endings } = resolveLanguageConfig(language)
+  const syllableCount = Math.floor(Math.random() * 3) + 2
+  let word = ''
 
-export function generateWords(count: number): string {
-    const result: string[] = []
-    for (let i = 0; i < count; i++) {
-        result.push(generateRandomWord())
-    }
-    return result.join(' ')
+  for (let i = 0; i < syllableCount; i += 1) {
+    word += syllables[Math.floor(Math.random() * syllables.length)]
+  }
+
+  if (Math.random() > 0.3) {
+    word += endings[Math.floor(Math.random() * endings.length)]
+  }
+
+  return word
 }
 
-export function getRandomQuote(): string {
-    return quotes[Math.floor(Math.random() * quotes.length)]
+export function generateWords(count: number, language: LanguageCode = defaultLanguage): string {
+  const result: string[] = []
+  for (let i = 0; i < count; i += 1) {
+    result.push(generateRandomWord(language))
+  }
+  return result.join(' ')
 }
 
-export function generateText(mode: 'time' | 'words' | 'quote', count: number): string {
-    if (mode === 'quote') {
-        return getRandomQuote()
-    }
-    return generateWords(count)
+export function getRandomQuote(language: LanguageCode = defaultLanguage): string {
+  const { quotes } = resolveLanguageConfig(language)
+  return quotes[Math.floor(Math.random() * quotes.length)]
+}
+
+export function generateText(mode: TestMode, count: number, language: LanguageCode = defaultLanguage): string {
+  if (mode === 'quote') {
+    return getRandomQuote(language)
+  }
+  return generateWords(count, language)
 }

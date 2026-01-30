@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { TestStats } from '../types'
+import { useTypingStore } from '../store/useTypingStore'
+import type { TestStats } from '../types'
 import { buildChartData, buildSummarySegments, buildWpmSeries, getTypedCharacters, isPerfectRun } from '../utils/results'
 
 export type ResultsData = {
@@ -11,6 +12,7 @@ export type ResultsData = {
 }
 
 export const useResultsData = (stats: TestStats | null, wpmSeries?: number[]): ResultsData | null => {
+  const language = useTypingStore((state) => state.settings.language)
   return useMemo(() => {
     if (!stats) return null
 
@@ -18,7 +20,7 @@ export const useResultsData = (stats: TestStats | null, wpmSeries?: number[]): R
     const typedCharacters = getTypedCharacters(stats)
     const series = wpmSeries && wpmSeries.length > 0 ? wpmSeries : buildWpmSeries(stats)
     const chart = buildChartData(series)
-    const summarySegments = buildSummarySegments(stats)
+    const summarySegments = buildSummarySegments(stats, language)
 
     return {
       stats,
@@ -27,5 +29,5 @@ export const useResultsData = (stats: TestStats | null, wpmSeries?: number[]): R
       summarySegments,
       chart,
     }
-  }, [stats])
+  }, [stats, language, wpmSeries])
 }

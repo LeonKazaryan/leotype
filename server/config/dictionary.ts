@@ -1,6 +1,7 @@
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { languageConfig } from './language.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -37,8 +38,9 @@ export type DictionaryIngestMode = typeof ingestModes[number]
 export const dictionaryConfig = {
     maxPerDifficulty: requiredNumber('DICTIONARY_MAX_PER_DIFFICULTY'),
     wordsPerGame: requiredNumber('DICTIONARY_WORDS_PER_GAME'),
-    language: requiredString('DICTIONARY_LANGUAGE'),
     source: requiredString('DICTIONARY_SOURCE'),
     allowedDifficulties,
     ingestModes,
+    supportedLanguages: languageConfig.supportedLanguages,
+    defaultLanguage: languageConfig.defaultLanguage,
 }

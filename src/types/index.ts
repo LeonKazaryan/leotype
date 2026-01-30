@@ -4,6 +4,8 @@ export type Theme = 'dark' | 'light' | 'neon' | 'ocean' | 'forest'
 
 export type AIDifficulty = 'easy' | 'medium' | 'hard'
 
+export type LanguageCode = 'ru' | 'en'
+
 export interface TestSettings {
   mode: TestMode
   time: number
@@ -14,6 +16,7 @@ export interface TestSettings {
   useAI: boolean
   aiTopic: string
   aiDifficulty: AIDifficulty
+  language: LanguageCode
 }
 
 export interface TestStats {

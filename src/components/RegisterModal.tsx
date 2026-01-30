@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
 import { setStoredAuth } from '../utils/auth'
+import { useI18n } from '../hooks/useI18n'
+import { authConfig } from '../config/auth'
 
 type RegisterModalProps = {
   open: boolean
@@ -25,12 +27,10 @@ type AuthResponse = {
   }
 }
 
-const USERNAME_MIN = 3
-const PASSWORD_MIN = 6
-
 function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
   const theme = useTypingStore((state) => state.settings.theme)
   const themeClasses = getThemeClasses(theme)
+  const i18n = useI18n()
 
   const [mode, setMode] = useState<AuthMode>('register')
   const [username, setUsername] = useState('')
@@ -41,8 +41,8 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
   const [successMessage, setSuccessMessage] = useState('')
 
   const isValid = useMemo(() => {
-    const nameOk = username.trim().length >= USERNAME_MIN
-    const passOk = password.length >= PASSWORD_MIN
+    const nameOk = username.trim().length >= authConfig.usernameMin
+    const passOk = password.length >= authConfig.passwordMin
     return nameOk && passOk
   }, [username, password])
 
@@ -60,11 +60,11 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
 
   function validate(): FieldErrors {
     const nextErrors: FieldErrors = {}
-    if (username.trim().length < USERNAME_MIN) {
-      nextErrors.username = `Минимум ${USERNAME_MIN} символа`
+    if (username.trim().length < authConfig.usernameMin) {
+      nextErrors.username = i18n.auth.validation.usernameMin(authConfig.usernameMin)
     }
-    if (password.length < PASSWORD_MIN) {
-      nextErrors.password = `Минимум ${PASSWORD_MIN} символов`
+    if (password.length < authConfig.passwordMin) {
+      nextErrors.password = i18n.auth.validation.passwordMin(authConfig.passwordMin)
     }
     return nextErrors
   }
@@ -100,8 +100,17 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
       const data = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        const message = data?.error || 'Ошибка запроса'
-        setServerError(message)
+        const code = typeof data?.code === 'string' ? data.code : null
+        if (code && code in i18n.auth.errorCodes) {
+          const resolver = i18n.auth.errorCodes[code as keyof typeof i18n.auth.errorCodes]
+          const message = typeof resolver === 'function'
+            ? resolver(code === 'USERNAME_MIN' ? authConfig.usernameMin : authConfig.passwordMin)
+            : resolver
+          setServerError(message)
+        } else {
+          const message = data?.error || i18n.auth.errors.request
+          setServerError(message)
+        }
         return
       }
 
@@ -110,10 +119,10 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
       onAuthSuccess(auth.user)
 
       setSuccessMessage(mode === 'register'
-        ? 'Аккаунт создан. Ты в системе.'
-        : 'Вход выполнен. Добро пожаловать.')
+        ? i18n.auth.success.register
+        : i18n.auth.success.login)
     } catch (error) {
-      setServerError('Не удалось подключиться к серверу')
+      setServerError(i18n.auth.errors.serverConnection)
     } finally {
       setSubmitting(false)
     }
@@ -146,16 +155,16 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className={`text-2xl font-bold ${themeClasses.primary}`}>
-                  {mode === 'register' ? 'Регистрация' : 'Вход'}
+                  {mode === 'register' ? i18n.auth.title.register : i18n.auth.title.login}
                 </h2>
                 <p className={`text-sm ${themeClasses.secondary} opacity-80 mt-1`}>
-                  Минималистично. Быстро. По делу.
+                  {i18n.auth.tagline}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Закрыть"
+                aria-label={i18n.common.close}
                 className={`text-lg ${themeClasses.secondary} hover:${themeClasses.primary} transition-colors`}
               >
                 ✕
@@ -174,7 +183,7 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
                       : `${themeClasses.secondary} border-transparent hover:${themeClasses.border}`
                   }`}
                 >
-                  {tab === 'register' ? 'Регистрация' : 'Вход'}
+                  {tab === 'register' ? i18n.auth.tabs.register : i18n.auth.tabs.login}
                 </button>
               ))}
             </div>
@@ -182,13 +191,13 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div className="space-y-2">
                 <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
-                  Username (уникальный)
+                  {i18n.auth.usernameLabel}
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="например: leon"
+                  placeholder={i18n.auth.usernamePlaceholder}
                   className={`w-full px-3 py-2 rounded-lg text-sm ${themeClasses.card} border-2 ${themeClasses.border} ${themeClasses.secondary} bg-transparent focus:outline-none focus:border-opacity-100 focus:${themeClasses.accent} transition-all placeholder:opacity-50`}
                 />
                 {errors.username && (
@@ -198,7 +207,7 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
 
               <div className="space-y-2">
                 <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>
-                  Пароль
+                  {i18n.auth.passwordLabel}
                 </label>
                 <input
                   type="password"
@@ -232,10 +241,10 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
                   }`}
                 >
                   {isSubmitting
-                    ? '⏳ Обработка...'
+                    ? i18n.auth.submit.submitting
                     : mode === 'register'
-                      ? 'Создать аккаунт'
-                      : 'Войти'}
+                      ? i18n.auth.submit.register
+                      : i18n.auth.submit.login}
                 </motion.button>
               </div>
             </form>

@@ -1,14 +1,17 @@
 import { apiBaseUrl, apiRoutes } from '../config/api'
+import { defaultLanguage } from '../config/language'
+import type { LanguageCode } from '../types'
 
 async function generateTextWithAI(
     mode: 'time' | 'words' | 'quote',
     count: number,
     topic: string = '',
-    difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+    difficulty: 'easy' | 'medium' | 'hard' = 'medium',
+    language: LanguageCode = defaultLanguage
 ): Promise<string> {
     try {
         if (import.meta.env.DEV) {
-            console.log('Generating AI text with params:', { mode, count, topic, difficulty })
+            console.log('Generating AI text with params:', { mode, count, topic, difficulty, language })
         }
 
         const controller = new AbortController()
@@ -24,6 +27,7 @@ async function generateTextWithAI(
                 count,
                 topic: topic.trim(),
                 difficulty,
+                language,
             }),
             signal: controller.signal,
         }).finally(() => clearTimeout(timeoutId))
