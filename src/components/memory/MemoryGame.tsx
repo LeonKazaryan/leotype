@@ -106,7 +106,12 @@ function MemoryGame() {
 
       <div className="mt-10 relative">
         {phase === 'memorize' || phase === 'transition' ? (
-          <MemoryCardView card={cards[currentIndex]} remainingLabel={remainingLabel} themeClasses={themeClasses} />
+          <MemoryCardView
+            card={cards[currentIndex]}
+            remainingLabel={remainingLabel}
+            themeClasses={themeClasses}
+            theme={settings.theme}
+          />
         ) : null}
 
         {phase === 'recall' && (
@@ -123,6 +128,7 @@ function MemoryGame() {
             inputShakeKey={inputShakeKey}
             themeClasses={themeClasses}
             i18n={i18n}
+            theme={settings.theme}
           />
         )}
       </div>
@@ -176,6 +182,7 @@ function MemoryGame() {
         themeClasses={themeClasses}
         i18n={i18n}
         orderRequired={orderRequired}
+        theme={settings.theme}
       />
     </motion.div>
   )

@@ -95,15 +95,30 @@ export const memoryConfig = {
       resultsStaggerDelay: 0.08,
     },
     statusClasses: {
-      correct: 'border-emerald-500/60 text-emerald-200',
-      incorrect: 'border-rose-500/60 text-rose-200',
-      misordered: 'border-amber-400/70 text-amber-200',
-      missing: 'border-slate-500/40 text-slate-300',
+      correct: 'border-emerald-500/60 text-emerald-200 bg-emerald-500/5',
+      incorrect: 'border-rose-500/60 text-rose-200 bg-rose-500/5',
+      misordered: 'border-amber-400/70 text-amber-200 bg-amber-400/5',
+      missing: 'border-slate-500/40 text-slate-300 bg-slate-500/5',
+    },
+    statusClassesLight: {
+      correct: 'border-emerald-500/50 text-emerald-700 bg-emerald-50',
+      incorrect: 'border-rose-500/50 text-rose-700 bg-rose-50',
+      misordered: 'border-amber-500/60 text-amber-700 bg-amber-50',
+      missing: 'border-slate-300 text-slate-600 bg-slate-50',
+    },
+    badgeClasses: {
+      dark: 'border-white/20 bg-white/5 text-white/70',
+      light: 'border-slate-200 bg-white text-slate-500',
     },
     slotClasses: {
       filled: 'border-emerald-400/40 text-emerald-100',
       empty: 'border-dashed border-white/20 text-white/40',
       hint: 'text-white/50',
+    },
+    slotClassesLight: {
+      filled: 'border-emerald-500/40 text-emerald-700 bg-emerald-50',
+      empty: 'border-dashed border-slate-300 text-slate-400 bg-white',
+      hint: 'text-slate-400',
     },
     cardClasses: {
       container:
@@ -111,6 +126,24 @@ export const memoryConfig = {
       glow: 'shadow-primary-500/20',
       sheen:
         "before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:via-white/5 before:to-transparent before:opacity-60",
+    },
+    cardClassesLight: {
+      container: 'relative rounded-3xl border border-slate-200 bg-white shadow-xl overflow-hidden',
+      glow: 'shadow-slate-200/60',
+      sheen:
+        "before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-br before:from-slate-100 before:via-white before:to-transparent before:opacity-80",
+    },
+    stageBackground: {
+      dark: 'bg-black/10 backdrop-blur-sm',
+      light: 'bg-slate-100/80 border border-slate-200',
+    },
+    timerBadge: {
+      dark: 'bg-black/40 text-white/80 border-white/10',
+      light: 'bg-white text-slate-600 border-slate-200 shadow-sm',
+    },
+    inputClasses: {
+      dark: '',
+      light: 'bg-white text-slate-700 placeholder:text-slate-400 border-slate-200',
     },
   },
 }

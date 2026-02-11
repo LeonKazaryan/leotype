@@ -152,13 +152,16 @@ export const useMemoryStore = create<MemoryStore>((set, get) => ({
         index === filledIndex ? { ...slot, guess: trimmed } : slot
       )
     } else {
-      filledIndex = getSlotIndexByGuess(slots, trimmed)
-      if (filledIndex === -1) {
-        set((state) => ({
-          inputShakeKey: state.inputShakeKey + 1,
-          inputValue: '',
-        }))
-        return
+      const matchedIndex = getSlotIndexByGuess(slots, trimmed)
+      if (matchedIndex === -1) {
+        const nextIndex = getNextSlotIndex(slots)
+        if (nextIndex === -1) {
+          set({ inputValue: '' })
+          return
+        }
+        filledIndex = nextIndex
+      } else {
+        filledIndex = matchedIndex
       }
       updatedSlots = slots.map((slot, index) =>
         index === filledIndex ? { ...slot, guess: trimmed } : slot

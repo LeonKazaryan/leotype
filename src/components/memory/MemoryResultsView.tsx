@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import type { MemoryResults } from '../../types/memory'
 import type { ThemeClasses } from '../../utils/themes'
+import type { Theme } from '../../types'
 import type { I18nDictionary } from '../../config/i18n'
 import ResultsOverlay from '../results/ResultsOverlay'
 import { memoryConfig } from '../../config/memory'
@@ -13,9 +14,10 @@ interface MemoryResultsViewProps {
   themeClasses: ThemeClasses
   i18n: I18nDictionary
   orderRequired: boolean
+  theme: Theme
 }
 
-const { statusClasses, animation } = memoryConfig.ui
+const { statusClasses, statusClassesLight, badgeClasses, animation } = memoryConfig.ui
 
 function MemoryResultsView({
   isVisible,
@@ -25,9 +27,12 @@ function MemoryResultsView({
   themeClasses,
   i18n,
   orderRequired,
+  theme,
 }: MemoryResultsViewProps) {
   if (!results) return null
 
+  const statusPalette = theme === 'light' ? statusClassesLight : statusClasses
+  const badgePalette = theme === 'light' ? badgeClasses.light : badgeClasses.dark
   const headerText = results.perfect ? i18n.memory.results.perfectTitle : i18n.memory.results.title
   const subText = orderRequired ? i18n.memory.results.orderOn : i18n.memory.results.orderOff
 
@@ -56,9 +61,9 @@ function MemoryResultsView({
               }}
               animate={{ opacity: 1, rotateY: 0, y: 0 }}
               transition={{ duration: animation.resultsFlipDuration, delay: index * animation.resultsStaggerDelay }}
-              className={`rounded-2xl border p-4 relative ${statusClasses[slot.status]}`}
+              className={`rounded-2xl border p-4 relative ${statusPalette[slot.status]}`}
             >
-              <div className="absolute right-3 top-3 h-7 w-7 rounded-full border border-white/20 bg-white/5 text-[11px] font-semibold flex items-center justify-center">
+              <div className={`absolute right-3 top-3 h-7 w-7 rounded-full border text-[11px] font-semibold flex items-center justify-center ${badgePalette}`}>
                 {index + 1}
               </div>
               <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">

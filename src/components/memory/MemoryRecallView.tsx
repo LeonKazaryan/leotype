@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import type { MemorySlot as MemorySlotType } from '../../types/memory'
 import type { ThemeClasses } from '../../utils/themes'
 import type { I18nDictionary } from '../../config/i18n'
+import type { Theme } from '../../types'
 import { memoryConfig } from '../../config/memory'
 import MemorySlot from './MemorySlot'
 
@@ -19,9 +20,10 @@ interface MemoryRecallViewProps {
   inputShakeKey: number
   themeClasses: ThemeClasses
   i18n: I18nDictionary
+  theme: Theme
 }
 
-const { animation } = memoryConfig.ui
+const { animation, inputClasses } = memoryConfig.ui
 
 function MemoryRecallView({
   slots,
@@ -37,6 +39,7 @@ function MemoryRecallView({
   inputShakeKey,
   themeClasses,
   i18n,
+  theme,
 }: MemoryRecallViewProps) {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (memoryConfig.input.submitKeys.includes(event.key as (typeof memoryConfig.input.submitKeys)[number])) {
@@ -49,11 +52,19 @@ function MemoryRecallView({
     }
   }
 
+  const inputPalette = theme === 'light' ? inputClasses.light : inputClasses.dark
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-center">
         {slots.map((slot) => (
-          <MemorySlot key={slot.id} slot={slot} isNew={slot.id === lastFilledSlotId} themeClasses={themeClasses} />
+          <MemorySlot
+            key={slot.id}
+            slot={slot}
+            isNew={slot.id === lastFilledSlotId}
+            themeClasses={themeClasses}
+            theme={theme}
+          />
         ))}
       </div>
 
@@ -76,7 +87,7 @@ function MemoryRecallView({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className={`w-full max-w-md px-4 py-3 rounded-xl text-sm ${themeClasses.card} border-2 ${themeClasses.border} ${themeClasses.primary} bg-transparent focus:outline-none focus:${themeClasses.accent} focus:${themeClasses.accentBorder} transition-colors placeholder:opacity-60`}
+          className={`w-full max-w-md px-4 py-3 rounded-xl text-sm ${themeClasses.card} border-2 ${themeClasses.border} ${themeClasses.primary} bg-transparent focus:outline-none focus:${themeClasses.accent} focus:${themeClasses.accentBorder} transition-colors placeholder:opacity-60 ${inputPalette}`}
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
