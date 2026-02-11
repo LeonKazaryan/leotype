@@ -14,7 +14,6 @@ function Settings() {
   const setTheme = useTypingStore(state => state.setTheme)
   const setLanguage = useTypingStore(state => state.setLanguage)
   const toggleKeyboard = useTypingStore(state => state.toggleKeyboard)
-  const toggleAI = useTypingStore(state => state.toggleAI)
   const setAITopic = useTypingStore(state => state.setAITopic)
   const setAIDifficulty = useTypingStore(state => state.setAIDifficulty)
   const resetTest = useTypingStore(state => state.resetTest)
@@ -24,8 +23,7 @@ function Settings() {
 
   const themeClasses = getThemeClasses(settings.theme)
   const isQuoteMode = settings.mode === 'quote'
-  const hasAITopic = settings.aiTopic.trim().length > 0
-  const isQuoteBlocked = isQuoteMode && (!settings.useAI || !hasAITopic)
+  const aiEnabled = settings.useAI
 
   const modes: TestMode[] = settingsOptions.modes
   const themes: Theme[] = settingsOptions.themes
@@ -157,9 +155,18 @@ function Settings() {
 
         <div className={`border-t pt-4 ${themeClasses.border} border-opacity-20`}>
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🤖</span>
-              <h3 className={`text-base font-semibold ${themeClasses.primary}`}>{i18n.settings.ai.title}</h3>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🤖</span>
+                <h3 className={`text-base font-semibold ${themeClasses.primary}`}>{i18n.settings.ai.title}</h3>
+              </div>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-semibold border ${themeClasses.border} ${
+                  aiEnabled ? themeClasses.accent : themeClasses.secondary
+                }`}
+              >
+                {i18n.settings.aiToggle[aiEnabled ? 'on' : 'off']}
+              </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -237,19 +244,6 @@ function Settings() {
                 >
                   ⌨️ {settings.showKeyboard ? i18n.settings.keyboardToggle.hide : i18n.settings.keyboardToggle.show}
                 </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={toggleAI}
-                  disabled={isQuoteMode}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                    settings.useAI
-                      ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                      : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                  } ${isQuoteMode ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  🤖 {settings.useAI ? i18n.settings.aiToggle.on : i18n.settings.aiToggle.off}
-                </motion.button>
               </div>
             </div>
 
@@ -262,9 +256,9 @@ function Settings() {
                   whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
                   whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
                   onClick={generateNewText}
-                  disabled={isGeneratingAI || isQuoteBlocked}
+                  disabled={isGeneratingAI}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
-                    isGeneratingAI || isQuoteBlocked ? 'opacity-50 cursor-not-allowed' : ''
+                    isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
                   {isGeneratingAI ? i18n.settings.actions.generating : i18n.settings.actions.newText}
@@ -273,9 +267,9 @@ function Settings() {
                   whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
                   whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
                   onClick={resetTest}
-                  disabled={isGeneratingAI || isQuoteBlocked}
+                  disabled={isGeneratingAI}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
-                    isGeneratingAI || isQuoteBlocked ? 'opacity-50 cursor-not-allowed' : ''
+                    isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
                   {isGeneratingAI ? i18n.settings.actions.generating : i18n.settings.actions.reset}

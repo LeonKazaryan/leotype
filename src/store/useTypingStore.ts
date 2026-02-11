@@ -21,7 +21,6 @@ interface TypingStore {
     setLanguage: (language: LanguageCode) => void
     toggleKeyboard: () => void
     toggleSound: () => void
-    toggleAI: () => void
     setAITopic: (topic: string) => void
     setAIDifficulty: (difficulty: AIDifficulty) => void
 
@@ -70,10 +69,8 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
     setMode: (mode) => {
         set((state) => {
-            const newSettings = mode === 'quote'
-                ? { ...state.settings, mode, useAI: true }
-                : { ...state.settings, mode }
-            return { settings: newSettings }
+            const aiEnabled = state.settings.aiTopic.trim().length > 0
+            return { settings: { ...state.settings, mode, useAI: aiEnabled } }
         })
 
         const { settings } = get()
@@ -154,18 +151,13 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         }))
     },
 
-    toggleAI: () => {
-        set((state) => ({
-            settings: state.settings.mode === 'quote'
-                ? { ...state.settings, useAI: true }
-                : { ...state.settings, useAI: !state.settings.useAI },
-        }))
-    },
-
     setAITopic: (topic) => {
-        set((state) => ({
-            settings: { ...state.settings, aiTopic: topic },
-        }))
+        set((state) => {
+            const aiEnabled = topic.trim().length > 0
+            return {
+                settings: { ...state.settings, aiTopic: topic, useAI: aiEnabled },
+            }
+        })
     },
 
     setAIDifficulty: (difficulty) => {
@@ -269,21 +261,18 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             return
         }
 
-        if (settings.mode === 'quote' && (!settings.useAI || settings.aiTopic.trim().length === 0)) {
-            return
-        }
-
         const updatedSettings = settings
+        const aiEnabled = updatedSettings.aiTopic.trim().length > 0
 
         set({
             settings: updatedSettings,
-            testState: { ...defaultTestState, isGeneratingAI: updatedSettings.useAI },
+            testState: { ...defaultTestState, isGeneratingAI: aiEnabled },
         })
-        if (updatedSettings.useAI) {
+        if (aiEnabled) {
             set({ dictionaryUnavailable: false })
         }
 
-        if (updatedSettings.useAI) {
+        if (aiEnabled) {
             // Для режима времени вычисляем количество слов на основе времени (примерно 2.5 слова в секунду)
             const wordCount = updatedSettings.mode === 'time'
                 ? Math.ceil(updatedSettings.time * 2.5)
@@ -364,22 +353,19 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             return
         }
 
-        if (settings.mode === 'quote' && (!settings.useAI || settings.aiTopic.trim().length === 0)) {
-            return
-        }
-
         const updatedSettings = settings
+        const aiEnabled = updatedSettings.aiTopic.trim().length > 0
 
         set({
             settings: updatedSettings,
-            testState: { ...defaultTestState, isGeneratingAI: updatedSettings.useAI },
+            testState: { ...defaultTestState, isGeneratingAI: aiEnabled },
             showGame: true,
         })
-        if (updatedSettings.useAI) {
+        if (aiEnabled) {
             set({ dictionaryUnavailable: false })
         }
 
-        if (updatedSettings.useAI) {
+        if (aiEnabled) {
             // Для режима времени вычисляем количество слов на основе времени (примерно 2.5 слова в секунду)
             const wordCount = updatedSettings.mode === 'time'
                 ? Math.ceil(updatedSettings.time * 2.5)

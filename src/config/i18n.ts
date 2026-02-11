@@ -67,7 +67,7 @@ const translations = {
         reset: 'Сброс',
         generating: '⏳ Генерация...',
       },
-      quoteRequirement: 'Для режима «Цитата» нужен включенный AI и заполненная тематика.',
+      quoteRequirement: 'AI включается автоматически при заполненной тематике.',
     },
     typing: {
       generatingTitle: 'Генерация текста',
@@ -85,7 +85,7 @@ const translations = {
     dictionary: {
       unavailableTitle: 'Словарь временно недоступен',
       unavailableBody:
-        'В словаре недостаточно слов для выбранной сложности. Включите AI и запустите несколько игр, чтобы заполнить словарь.',
+        'В словаре недостаточно слов для выбранной сложности. Укажите тематику, чтобы включить AI, и запустите несколько игр для наполнения словаря.',
     },
     auth: {
       title: {
@@ -210,7 +210,7 @@ const translations = {
         reset: 'Reset',
         generating: '⏳ Generating...',
       },
-      quoteRequirement: 'Quote mode requires AI on and a topic.',
+      quoteRequirement: 'AI turns on automatically when a topic is provided.',
     },
     typing: {
       generatingTitle: 'Generating text',
@@ -228,7 +228,7 @@ const translations = {
     dictionary: {
       unavailableTitle: 'Dictionary temporarily unavailable',
       unavailableBody:
-        'Not enough words for the selected difficulty. Enable AI and run a few games to fill the dictionary.',
+        'Not enough words for the selected difficulty. Provide a topic to enable AI and run a few games to fill the dictionary.',
     },
     auth: {
       title: {
