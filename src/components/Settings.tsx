@@ -64,10 +64,10 @@ function Settings({ isAuthenticated, onRequireAuth }: SettingsProps) {
       className={`rounded-2xl p-6 ${themeClasses.card} border ${themeClasses.border} shadow-xl`}
     >
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] gap-6">
           <div className="space-y-2">
             <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>{i18n.settings.modeLabel}</label>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-nowrap">
               {modes.map(mode => {
                 const isLocked = mode === 'memory' && isMemoryLocked
                 const isActive = settings.mode === mode
@@ -86,7 +86,7 @@ function Settings({ isAuthenticated, onRequireAuth }: SettingsProps) {
                         setMode(mode)
                       }}
                       aria-disabled={isLocked}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                      className={`px-2.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                         isActive
                           ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
                           : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
