@@ -74,22 +74,36 @@ function Settings({ isAuthenticated, onRequireAuth }: SettingsProps) {
                 const label = isLocked ? `${i18n.settings.modeOptions[mode]} 🔒` : i18n.settings.modeOptions[mode]
 
                 return (
-                  <motion.button
-                    key={mode}
-                    whileHover={!isLocked ? { scale: 1.05 } : {}}
-                    whileTap={!isLocked ? { scale: 0.95 } : {}}
-                    onClick={() => {
-                      setMode(mode)
-                    }}
-                    aria-disabled={isLocked}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                      isActive
-                        ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                        : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                    } ${isLocked ? 'opacity-60' : ''}`}
-                  >
-                    {label}
-                  </motion.button>
+                  <div key={mode} className="relative group">
+                    <motion.button
+                      whileHover={!isLocked ? { scale: 1.05 } : {}}
+                      whileTap={!isLocked ? { scale: 0.95 } : {}}
+                      onClick={() => {
+                        if (isLocked) {
+                          onRequireAuth()
+                          return
+                        }
+                        setMode(mode)
+                      }}
+                      aria-disabled={isLocked}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                        isActive
+                          ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                          : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                      } ${isLocked ? 'opacity-60' : ''}`}
+                    >
+                      {label}
+                    </motion.button>
+                    {isLocked && (
+                      <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-56 -translate-x-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <div
+                          className={`rounded-lg px-3 py-2 text-xs ${themeClasses.card} ${themeClasses.secondary} border ${themeClasses.border} shadow-lg`}
+                        >
+                          {i18n.settings.modeLockedHint}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>

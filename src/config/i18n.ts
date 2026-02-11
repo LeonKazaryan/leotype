@@ -37,6 +37,7 @@ const translations = {
         quote: 'Цитата',
         memory: 'Memory',
       },
+      modeLockedHint: 'Нужно войти или зарегистрироваться, чтобы открыть Memory.',
       timeLabel: 'Время (сек)',
       wordsLabel: 'Слов',
       ai: {
@@ -217,6 +218,7 @@ const translations = {
         quote: 'Quote',
         memory: 'Memory',
       },
+      modeLockedHint: 'Log in or register to unlock Memory mode.',
       timeLabel: 'Time (sec)',
       wordsLabel: 'Words',
       ai: {
