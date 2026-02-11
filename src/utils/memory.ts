@@ -19,7 +19,11 @@ export const splitTextToWords = (text: string) => {
 }
 
 export const normalizeMemoryWord = (word: string) => {
-  return word.trim().toLowerCase().replace(wordNormalizeRegex, '')
+  return word
+    .trim()
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(wordNormalizeRegex, '')
 }
 
 const buildHintPlaceholder = (length: number, includeFirstLetter: boolean, word: string) => {
