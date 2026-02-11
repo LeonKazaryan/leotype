@@ -12,6 +12,8 @@ model User {
   passwordHash String
   nickname     String?
   score        Int      @default(0)
+  charactersWritten Int @default(0)
+  wordsWritten Int @default(0)
   role         String   @default("user")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

@@ -6,6 +6,7 @@ import { calculateStats } from '../utils/stats'
 import { buildWpmSeriesFromTimestamps, updateInputTimestamps } from '../utils/typingMetrics'
 import { defaultLanguage } from '../config/language'
 import { aiModeMap } from '../config/aiModes'
+import { sendUserStats } from '../services/userStats'
 
 interface TypingStore {
     settings: TestSettings
@@ -246,6 +247,8 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         const timeSeconds = (endTime - testState.startTime) / 1000
         const stats = calculateStats(text, testState.userInput, timeSeconds)
         const wpmSeries = buildWpmSeriesFromTimestamps(testState.inputTimestamps, testState.startTime, endTime)
+        const wordsTyped = testState.userInput.trim().split(/\s+/).filter(Boolean).length
+        const charactersTyped = stats.characters.correct + stats.characters.incorrect + stats.characters.extra
 
         set({
             testState: {
@@ -257,6 +260,14 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
                 wpmSeries,
             },
         })
+
+        if (charactersTyped > 0 || wordsTyped > 0) {
+            sendUserStats({ characters: charactersTyped, words: wordsTyped }).catch((error) => {
+                if (import.meta.env.DEV) {
+                    console.warn('Failed to persist user stats:', error)
+                }
+            })
+        }
     },
 
     resetTest: () => {

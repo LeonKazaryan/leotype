@@ -22,9 +22,13 @@ function setStoredAuth(token: string, user: AuthUser) {
   localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user))
 }
 
+function getStoredToken(): string | null {
+  return localStorage.getItem(STORAGE_TOKEN_KEY)
+}
+
 function clearStoredAuth() {
   localStorage.removeItem(STORAGE_TOKEN_KEY)
   localStorage.removeItem(STORAGE_USER_KEY)
 }
 
-export { getStoredUser, setStoredAuth, clearStoredAuth }
+export { getStoredUser, getStoredToken, setStoredAuth, clearStoredAuth }

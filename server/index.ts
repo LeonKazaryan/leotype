@@ -74,6 +74,21 @@ function getJwtSecret() {
     return JWT_SECRET
 }
 
+function getUserIdFromRequest(req: express.Request): string | null {
+    const authHeader = req.header('authorization')
+    if (!authHeader) return null
+
+    const match = authHeader.match(/^Bearer\\s+(.+)$/i)
+    if (!match) return null
+
+    try {
+        const payload = jwt.verify(match[1], getJwtSecret()) as jwt.JwtPayload
+        return typeof payload.sub === 'string' ? payload.sub : null
+    } catch {
+        return null
+    }
+}
+
 app.post('/api/auth/register', async (req, res) => {
     try {
         const rawUsername = typeof req.body?.username === 'string' ? req.body.username : ''
@@ -158,6 +173,42 @@ app.post('/api/auth/login', async (req, res) => {
     } catch (error) {
         console.error('Login error:', error)
         return res.status(500).json({ error: 'Server error', code: authErrorCodes.SERVER_ERROR })
+    }
+})
+
+app.post('/api/user/stats', async (req, res) => {
+    try {
+        const userId = getUserIdFromRequest(req)
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' })
+        }
+
+        const rawCharacters = Number(req.body?.characters)
+        const rawWords = Number(req.body?.words)
+
+        if (!Number.isFinite(rawCharacters) || !Number.isFinite(rawWords)) {
+            return res.status(400).json({ error: 'Invalid stats payload' })
+        }
+
+        const characters = Math.max(0, Math.floor(rawCharacters))
+        const words = Math.max(0, Math.floor(rawWords))
+
+        if (characters === 0 && words === 0) {
+            return res.status(200).json({ ok: true })
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                charactersWritten: { increment: characters },
+                wordsWritten: { increment: words },
+            },
+        })
+
+        return res.status(200).json({ ok: true })
+    } catch (error) {
+        console.error('Update stats error:', error)
+        return res.status(500).json({ error: 'Server error' })
     }
 })
 

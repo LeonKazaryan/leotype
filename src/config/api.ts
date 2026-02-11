@@ -4,6 +4,7 @@ const apiBaseUrl = import.meta.env.VITE_API_URL ||
 const apiRoutes = {
     generateText: '/api/generate-text',
     dictionaryWords: '/api/dictionary/words',
+    userStats: '/api/user/stats',
 }
 
 export { apiBaseUrl, apiRoutes }
