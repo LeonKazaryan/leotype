@@ -5,14 +5,14 @@ export type AIDifficulty = 'easy' | 'medium' | 'hard'
 
 const difficultyDescriptions: Record<AppLanguage, Record<AIDifficulty, string>> = {
     ru: {
-        easy: 'простые и короткие слова, базовый уровень',
-        medium: 'средней сложности слова и фразы',
-        hard: 'сложные технические термины и длинные предложения',
+        easy: ': 3–6 букв, очень бытовые слова, без редких буквосочетаний, без приставок типа “пред-, меж-, сверх-”.',
+        medium: '6–10 букв, обычные слова, допускаются приставки/суффиксы, но без терминов',
+        hard: '10–16 букв, допускаются термины/книжные слова, но без дефиса и пробелов.',
     },
     en: {
-        easy: 'simple short words, basic level',
-        medium: 'medium complexity words and phrases',
-        hard: 'advanced technical terms and longer sentences',
+        easy: '3–6 letters, 1 syllable preferred (can be 2), no hyphens, no proper nouns, no rare words, no abbreviations.',
+        medium: '6–9 letters, 2–3 syllables, common words only, no proper nouns.',
+        hard: '9–14 letters, 4+ syllables, can include academic/technical but still single word, no spaces/hyphens.',
     },
 }
 

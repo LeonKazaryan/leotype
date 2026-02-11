@@ -3,7 +3,7 @@ import { dictionaryConfig, DictionaryDifficulty } from '../config/dictionary.js'
 import { languageConfig } from '../config/language.js'
 import type { AppLanguage } from '../config/language.js'
 import { dictionaryRepository } from '../repositories/dictionaryRepository.js'
-import { extractNormalizedWords, sampleArray, uniqueWords } from '../utils/wordUtils.js'
+import { extractNormalizedWords, filterWordsByDifficulty, sampleArray, uniqueWords } from '../utils/wordUtils.js'
 
 const canIngestMode = (mode: string): mode is typeof dictionaryConfig.ingestModes[number] => {
     return dictionaryConfig.ingestModes.includes(mode as typeof dictionaryConfig.ingestModes[number])
@@ -29,11 +29,12 @@ export const dictionaryService = {
         )
 
         const words = entries.map((entry) => entry.word)
-        const sampled = sampleArray(words, count)
+        const filteredWords = filterWordsByDifficulty(words, difficulty, resolvedLanguage)
+        const sampled = sampleArray(filteredWords, count)
 
         return {
             words: sampled,
-            totalAvailable: words.length,
+            totalAvailable: filteredWords.length,
         }
     },
 
@@ -48,14 +49,18 @@ export const dictionaryService = {
             return
         }
 
+        const resolvedLanguage = languageConfig.normalizeLanguage(language)
         const normalizedWords = uniqueWords(extractNormalizedWords(text))
         if (normalizedWords.length === 0) {
             return
         }
 
-        const sampleLimit = Math.min(dictionaryConfig.wordsPerGame, dictionaryConfig.maxPerDifficulty)
+        const filteredWords = filterWordsByDifficulty(normalizedWords, difficulty, resolvedLanguage)
+        if (filteredWords.length === 0) {
+            return
+        }
 
-        const resolvedLanguage = languageConfig.normalizeLanguage(language)
+        const sampleLimit = Math.min(dictionaryConfig.wordsPerGame, dictionaryConfig.maxPerDifficulty)
 
         await prisma.$transaction(async (tx) => {
             const existingEntries = await dictionaryRepository.findByDifficulty(
@@ -66,7 +71,7 @@ export const dictionaryService = {
             )
 
             const existingWordSet = new Set(existingEntries.map((entry) => entry.word.toLowerCase()))
-            const candidates = normalizedWords.filter((word) => !existingWordSet.has(word))
+            const candidates = filteredWords.filter((word) => !existingWordSet.has(word))
 
             if (candidates.length === 0) {
                 return
