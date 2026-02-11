@@ -5,6 +5,7 @@ import { generateTextFromDictionary } from '../utils/dictionaryText'
 import { calculateStats } from '../utils/stats'
 import { buildWpmSeriesFromTimestamps, updateInputTimestamps } from '../utils/typingMetrics'
 import { defaultLanguage } from '../config/language'
+import { aiModeMap } from '../config/aiModes'
 
 interface TypingStore {
     settings: TestSettings
@@ -13,6 +14,7 @@ interface TypingStore {
     showGame: boolean
     dictionaryUnavailable: boolean
 
+    setShowGame: (show: boolean) => void
     setMode: (mode: TestMode) => void
     setTime: (time: number) => void
     setWords: (words: number) => void
@@ -66,6 +68,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
     showGame: false,
     dictionaryUnavailable: false,
 
+    setShowGame: (show) => {
+        set({ showGame: show })
+    },
+
     setMode: (mode) => {
         set((state) => {
             const aiEnabled = state.settings.aiTopic.trim().length > 0
@@ -73,7 +79,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         })
 
         const { settings } = get()
-        if (!settings.useAI && get().showGame) {
+        if (!settings.useAI && get().showGame && settings.mode !== 'memory') {
             const wordCount = settings.mode === 'time'
                 ? Math.ceil(settings.time * 2.5)
                 : settings.words
@@ -107,7 +113,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         })
 
         const { settings } = get()
-        if (!settings.useAI && get().showGame) {
+        if (!settings.useAI && get().showGame && settings.mode !== 'memory') {
             const wordCount = settings.mode === 'time'
                 ? Math.ceil(settings.time * 2.5)
                 : settings.words
@@ -260,6 +266,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             return
         }
 
+        if (settings.mode === 'memory') {
+            return
+        }
+
         const updatedSettings = settings
         const aiEnabled = updatedSettings.aiTopic.trim().length > 0
 
@@ -287,7 +297,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             }
 
             generateTextWithAI(
-                updatedSettings.mode,
+                aiModeMap[updatedSettings.mode],
                 wordCount,
                 updatedSettings.aiTopic,
                 updatedSettings.aiDifficulty,
@@ -368,6 +378,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             return
         }
 
+        if (settings.mode === 'memory') {
+            return
+        }
+
         const updatedSettings = settings
         const aiEnabled = updatedSettings.aiTopic.trim().length > 0
 
@@ -396,7 +410,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
             }
 
             generateTextWithAI(
-                updatedSettings.mode,
+                aiModeMap[updatedSettings.mode],
                 wordCount,
                 updatedSettings.aiTopic,
                 updatedSettings.aiDifficulty,

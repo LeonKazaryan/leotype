@@ -1,4 +1,4 @@
-export type TestMode = 'time' | 'words' | 'quote'
+export type TestMode = 'time' | 'words' | 'quote' | 'memory'
 
 export type Theme = 'dark' | 'light' | 'neon' | 'ocean' | 'forest'
 

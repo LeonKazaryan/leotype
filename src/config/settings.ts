@@ -1,7 +1,7 @@
 import type { AIDifficulty, TestMode, Theme } from '../types'
 
 export const settingsOptions = {
-  modes: ['time', 'words', 'quote'] as TestMode[],
+  modes: ['time', 'words', 'quote', 'memory'] as TestMode[],
   themes: ['dark', 'light', 'neon', 'ocean', 'forest'] as Theme[],
   timeOptions: [10, 15, 25, 30, 60],
   wordOptions: [15, 20, 25, 50],

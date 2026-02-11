@@ -1,12 +1,18 @@
 import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
+import { useMemoryStore } from '../store/useMemoryStore'
 import type { TestMode, Theme, AIDifficulty } from '../types'
 import { supportedLanguages } from '../config/language'
 import { settingsOptions } from '../config/settings'
 import { getThemeClasses } from '../utils/themes'
 import { useI18n } from '../hooks/useI18n'
 
-function Settings() {
+interface SettingsProps {
+  isAuthenticated: boolean
+  onRequireAuth: () => void
+}
+
+function Settings({ isAuthenticated, onRequireAuth }: SettingsProps) {
   const settings = useTypingStore(state => state.settings)
   const setMode = useTypingStore(state => state.setMode)
   const setTime = useTypingStore(state => state.setTime)
@@ -18,12 +24,32 @@ function Settings() {
   const setAIDifficulty = useTypingStore(state => state.setAIDifficulty)
   const resetTest = useTypingStore(state => state.resetTest)
   const generateNewText = useTypingStore(state => state.generateNewText)
+  const setShowGame = useTypingStore(state => state.setShowGame)
   const isGeneratingAI = useTypingStore(state => state.testState.isGeneratingAI)
+  const startMemorySession = useMemoryStore(state => state.startSession)
+  const isMemoryLoading = useMemoryStore(state => state.isLoading)
   const i18n = useI18n()
 
   const themeClasses = getThemeClasses(settings.theme)
   const isQuoteMode = settings.mode === 'quote'
+  const isMemoryMode = settings.mode === 'memory'
+  const hasAITopic = settings.aiTopic.trim().length > 0
+  const isAiDormant = !hasAITopic
+  const isDifficultyLocked = isAiDormant && !isMemoryMode
   const aiEnabled = settings.useAI
+  const isMemoryLocked = !isAuthenticated
+  const aiHintText = isMemoryMode ? i18n.settings.ai.hintMemory : i18n.settings.ai.hint
+  const isActionBusy = isMemoryMode ? isMemoryLoading : isGeneratingAI
+  const primaryActionLabel = isMemoryMode
+    ? isActionBusy
+      ? i18n.settings.actions.generating
+      : isMemoryLocked
+        ? i18n.settings.actions.loginToPlay
+        : i18n.settings.actions.start
+    : isGeneratingAI
+      ? i18n.settings.actions.generating
+      : i18n.settings.actions.newText
+  const showResetButton = !isMemoryMode
 
   const modes: TestMode[] = settingsOptions.modes
   const themes: Theme[] = settingsOptions.themes
@@ -42,21 +68,30 @@ function Settings() {
           <div className="space-y-2">
             <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>{i18n.settings.modeLabel}</label>
             <div className="flex gap-2 flex-wrap">
-              {modes.map(mode => (
-                <motion.button
-                  key={mode}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setMode(mode)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                    settings.mode === mode
-                      ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
-                      : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                  }`}
-                >
-                  {i18n.settings.modeOptions[mode]}
-                </motion.button>
-              ))}
+              {modes.map(mode => {
+                const isLocked = mode === 'memory' && isMemoryLocked
+                const isActive = settings.mode === mode
+                const label = isLocked ? `${i18n.settings.modeOptions[mode]} 🔒` : i18n.settings.modeOptions[mode]
+
+                return (
+                  <motion.button
+                    key={mode}
+                    whileHover={!isLocked ? { scale: 1.05 } : {}}
+                    whileTap={!isLocked ? { scale: 0.95 } : {}}
+                    onClick={() => {
+                      setMode(mode)
+                    }}
+                    aria-disabled={isLocked}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                      isActive
+                        ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
+                        : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
+                    } ${isLocked ? 'opacity-60' : ''}`}
+                  >
+                    {label}
+                  </motion.button>
+                )
+              })}
             </div>
           </div>
 
@@ -161,17 +196,28 @@ function Settings() {
                 <h3 className={`text-base font-semibold ${themeClasses.primary}`}>{i18n.settings.ai.title}</h3>
               </div>
               <span
-                className={`px-2 py-1 rounded-full text-xs font-semibold border ${themeClasses.border} ${
+                className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-semibold border ${themeClasses.border} ${
                   aiEnabled ? themeClasses.accent : themeClasses.secondary
                 }`}
               >
+                <span
+                  className={`h-2 w-2 rounded-full border ${
+                    aiEnabled
+                      ? `${themeClasses.accentBorder} ${themeClasses.accentBg} animate-pulse-slow`
+                      : themeClasses.border
+                  }`}
+                />
                 {i18n.settings.aiToggle[aiEnabled ? 'on' : 'off']}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className={`block text-sm font-medium ${themeClasses.secondary}`}>
+                <label
+                  className={`block text-sm font-medium transition-colors ${
+                    hasAITopic ? themeClasses.accent : themeClasses.secondary
+                  }`}
+                >
                   {i18n.settings.ai.topicLabel}
                 </label>
                 <input
@@ -179,14 +225,29 @@ function Settings() {
                   value={settings.aiTopic}
                   onChange={e => setAITopic(e.target.value)}
                   placeholder={i18n.settings.ai.topicPlaceholder}
-                  className={`w-full px-3 py-2 rounded-lg text-sm ${themeClasses.card} border-2 ${themeClasses.border} ${themeClasses.secondary} bg-transparent focus:outline-none focus:border-opacity-100 focus:${themeClasses.accent} transition-all placeholder:opacity-50`}
+                  className={`w-full px-3 py-2 rounded-lg text-sm ${themeClasses.card} border-2 ${
+                    hasAITopic
+                      ? `${themeClasses.accentBorder} ring-2 ${themeClasses.accentRing} shadow-lg`
+                      : themeClasses.border
+                  } ${themeClasses.secondary} bg-transparent focus:outline-none focus:border-opacity-100 focus:${themeClasses.accent} transition-all placeholder:opacity-50`}
                 />
-                <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
-                  {i18n.settings.ai.topicHint}
-                </p>
+                {hasAITopic ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <span
+                      className={`h-2 w-2 rounded-full border ${themeClasses.accentBorder} ${themeClasses.accentBg} animate-pulse-slow`}
+                    />
+                    <span className={`text-xs font-semibold ${themeClasses.accent}`}>
+                      {i18n.settings.ai.topicStatus.active}
+                    </span>
+                  </div>
+                ) : (
+                  <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
+                    {i18n.settings.ai.topicStatus.inactive}
+                  </p>
+                )}
               </div>
 
-              <div className="space-y-2">
+              <div className={`space-y-2 transition-opacity ${isDifficultyLocked ? 'opacity-40' : 'opacity-100'}`}>
                 <label className={`block text-sm font-medium ${themeClasses.secondary}`}>
                   {i18n.settings.ai.difficultyLabel}
                 </label>
@@ -197,14 +258,15 @@ function Settings() {
                     return (
                       <motion.button
                         key={difficulty}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={!isDifficultyLocked ? { scale: 1.05 } : {}}
+                        whileTap={!isDifficultyLocked ? { scale: 0.95 } : {}}
                         onClick={() => setAIDifficulty(difficulty)}
+                        disabled={isDifficultyLocked}
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                           settings.aiDifficulty === difficulty
                             ? `${themeClasses.accent} bg-opacity-20 border-2 ${themeClasses.border}`
                             : `${themeClasses.secondary} border-2 border-transparent hover:${themeClasses.border}`
-                        }`}
+                        } ${isDifficultyLocked ? 'cursor-not-allowed' : ''}`}
                       >
                         {icon} {i18n.settings.ai.difficultyOptions[difficulty]}
                       </motion.button>
@@ -218,9 +280,11 @@ function Settings() {
             </div>
 
             <div
-              className={`text-xs ${themeClasses.secondary} opacity-70 text-center pt-2 border-t ${themeClasses.border} border-opacity-20`}
+              className={`text-xs ${themeClasses.secondary} text-center pt-2 border-t ${themeClasses.border} border-opacity-20 transition-opacity ${
+                isDifficultyLocked ? 'opacity-50' : 'opacity-80'
+              }`}
             >
-              {i18n.settings.ai.hint}
+              {aiHintText}
             </div>
           </div>
         </div>
@@ -253,31 +317,53 @@ function Settings() {
               </label>
               <div className="flex gap-2 flex-wrap">
                 <motion.button
-                  whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
-                  whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
-                  onClick={generateNewText}
-                  disabled={isGeneratingAI}
+                  whileHover={!isActionBusy ? { scale: 1.05 } : {}}
+                  whileTap={!isActionBusy ? { scale: 0.95 } : {}}
+                  onClick={() => {
+                    if (isMemoryMode) {
+                      if (isMemoryLocked) {
+                        onRequireAuth()
+                        return
+                      }
+                      setShowGame(true)
+                      startMemorySession({
+                        difficulty: settings.aiDifficulty,
+                        language: settings.language,
+                        topic: settings.aiTopic,
+                      })
+                      return
+                    }
+                    generateNewText()
+                  }}
+                  disabled={isActionBusy}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
-                    isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
+                    isActionBusy ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
-                  {isGeneratingAI ? i18n.settings.actions.generating : i18n.settings.actions.newText}
+                  {primaryActionLabel}
                 </motion.button>
-                <motion.button
-                  whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
-                  whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
-                  onClick={resetTest}
-                  disabled={isGeneratingAI}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
-                    isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  {isGeneratingAI ? i18n.settings.actions.generating : i18n.settings.actions.reset}
-                </motion.button>
+                {showResetButton && (
+                  <motion.button
+                    whileHover={!isGeneratingAI ? { scale: 1.05 } : {}}
+                    whileTap={!isGeneratingAI ? { scale: 0.95 } : {}}
+                    onClick={resetTest}
+                    disabled={isGeneratingAI}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium ${themeClasses.primary} border-2 ${themeClasses.border} hover:bg-opacity-10 transition-colors whitespace-nowrap ${
+                      isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {isGeneratingAI ? i18n.settings.actions.generating : i18n.settings.actions.reset}
+                  </motion.button>
+                )}
               </div>
               {isQuoteMode && (
                 <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
                   {i18n.settings.quoteRequirement}
+                </p>
+              )}
+              {isMemoryMode && isMemoryLocked && (
+                <p className={`text-xs ${themeClasses.secondary} opacity-70`}>
+                  {i18n.settings.memoryRequirement}
                 </p>
               )}
             </div>

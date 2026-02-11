@@ -9,11 +9,13 @@ import Confetti from './components/Confetti'
 import BackgroundEffects from './components/BackgroundEffects'
 import RegisterModal from './components/RegisterModal'
 import DictionaryUnavailableModal from './components/DictionaryUnavailableModal'
+import MemoryGame from './components/memory/MemoryGame'
 import { AuthUser, clearStoredAuth, getStoredUser } from './utils/auth'
 import { getThemeClasses } from './utils/themes'
 
 function App() {
   const theme = useTypingStore((state) => state.settings.theme)
+  const mode = useTypingStore((state) => state.settings.mode)
   const showGame = useTypingStore((state) => state.showGame)
   const dictionaryUnavailable = useTypingStore((state) => state.dictionaryUnavailable)
   const setDictionaryUnavailable = useTypingStore((state) => state.setDictionaryUnavailable)
@@ -56,16 +58,23 @@ function App() {
           onLogout={() => {
             clearStoredAuth()
             setCurrentUser(null)
+            goToSettings()
           }}
         />
         <div className="mt-8 space-y-6">
           {!showGame ? (
-            <Settings />
+            <Settings isAuthenticated={!!currentUser} onRequireAuth={() => setRegisterOpen(true)} />
           ) : (
             <>
-              <TypingTest />
-              <Keyboard />
-              <Stats />
+              {mode === 'memory' ? (
+                <MemoryGame />
+              ) : (
+                <>
+                  <TypingTest />
+                  <Keyboard />
+                  <Stats />
+                </>
+              )}
             </>
           )}
         </div>
