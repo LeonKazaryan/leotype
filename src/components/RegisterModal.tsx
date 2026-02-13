@@ -10,6 +10,7 @@ type RegisterModalProps = {
   open: boolean
   onClose: () => void
   onAuthSuccess: (user: AuthResponse['user']) => void
+  initialMode?: AuthMode
 }
 
 type FieldErrors = {
@@ -27,7 +28,7 @@ type AuthResponse = {
   }
 }
 
-function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
+function RegisterModal({ open, onClose, onAuthSuccess, initialMode }: RegisterModalProps) {
   const theme = useTypingStore((state) => state.settings.theme)
   const themeClasses = getThemeClasses(theme)
   const i18n = useI18n()
@@ -47,16 +48,18 @@ function RegisterModal({ open, onClose, onAuthSuccess }: RegisterModalProps) {
   }, [username, password])
 
   useEffect(() => {
-    if (!open) {
-      setMode('register')
-      setUsername('')
-      setPassword('')
-      setErrors({})
-      setServerError('')
-      setSubmitting(false)
-      setSuccessMessage('')
+    if (open) {
+      setMode(initialMode ?? 'register')
+      return
     }
-  }, [open])
+    setMode('register')
+    setUsername('')
+    setPassword('')
+    setErrors({})
+    setServerError('')
+    setSubmitting(false)
+    setSuccessMessage('')
+  }, [open, initialMode])
 
   function validate(): FieldErrors {
     const nextErrors: FieldErrors = {}

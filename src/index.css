@@ -17,4 +17,19 @@
     .glow-text {
         text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
     }
+
+    .pvp-grain {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pvp-grain::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+        opacity: 0.06;
+        pointer-events: none;
+        mix-blend-mode: soft-light;
+    }
 }

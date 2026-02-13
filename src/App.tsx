@@ -10,8 +10,11 @@ import BackgroundEffects from './components/BackgroundEffects'
 import RegisterModal from './components/RegisterModal'
 import DictionaryUnavailableModal from './components/DictionaryUnavailableModal'
 import MemoryGame from './components/memory/MemoryGame'
+import PvpAuthModal from './components/pvp/PvpAuthModal'
+import PvpOverlay from './components/pvp/PvpOverlay'
 import { AuthUser, clearStoredAuth, getStoredUser } from './utils/auth'
 import { getThemeClasses } from './utils/themes'
+import { usePvpStore } from './store/usePvpStore'
 
 function App() {
   const theme = useTypingStore((state) => state.settings.theme)
@@ -22,7 +25,12 @@ function App() {
   const goToSettings = useTypingStore((state) => state.goToSettings)
   const themeClasses = getThemeClasses(theme)
   const [isRegisterOpen, setRegisterOpen] = useState(false)
+  const [registerInitialMode, setRegisterInitialMode] = useState<'register' | 'login' | undefined>(undefined)
+  const [isPvpAuthOpen, setPvpAuthOpen] = useState(false)
+  const [pvpShakeKey, setPvpShakeKey] = useState(0)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
+  const openPvpLobby = usePvpStore((state) => state.openLobby)
+  const closePvpLobby = usePvpStore((state) => state.closeLobby)
   
   useEffect(() => {
     document.body.className = themeClasses.body
@@ -39,9 +47,24 @@ function App() {
       <RegisterModal
         open={isRegisterOpen}
         onClose={() => setRegisterOpen(false)}
+        initialMode={registerInitialMode}
         onAuthSuccess={(user) => {
           setCurrentUser(user)
           setRegisterOpen(false)
+        }}
+      />
+      <PvpAuthModal
+        open={isPvpAuthOpen}
+        onClose={() => setPvpAuthOpen(false)}
+        onLogin={() => {
+          setPvpAuthOpen(false)
+          setRegisterInitialMode('login')
+          setRegisterOpen(true)
+        }}
+        onSignup={() => {
+          setPvpAuthOpen(false)
+          setRegisterInitialMode('register')
+          setRegisterOpen(true)
         }}
       />
       <DictionaryUnavailableModal
@@ -53,17 +76,36 @@ function App() {
       />
       <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         <Header
-          onOpenRegister={() => setRegisterOpen(true)}
+          onOpenRegister={() => {
+            setRegisterInitialMode(undefined)
+            setRegisterOpen(true)
+          }}
           user={currentUser}
           onLogout={() => {
             clearStoredAuth()
             setCurrentUser(null)
             goToSettings()
+            closePvpLobby()
           }}
         />
         <div className="mt-8 space-y-6">
           {!showGame ? (
-            <Settings isAuthenticated={!!currentUser} onRequireAuth={() => setRegisterOpen(true)} />
+            <Settings
+              isAuthenticated={!!currentUser}
+              onRequireAuth={() => {
+                setRegisterInitialMode('login')
+                setRegisterOpen(true)
+              }}
+              onOpenPvp={() => {
+                if (!currentUser) return
+                openPvpLobby(currentUser)
+              }}
+              onRequirePvpAuth={() => {
+                setPvpShakeKey((prev) => prev + 1)
+                setPvpAuthOpen(true)
+              }}
+              pvpShakeKey={pvpShakeKey}
+            />
           ) : (
             <>
               {mode === 'memory' ? (
@@ -79,6 +121,7 @@ function App() {
           )}
         </div>
       </div>
+      <PvpOverlay onCloseLobby={closePvpLobby} />
     </div>
   )
 }

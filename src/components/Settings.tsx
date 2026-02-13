@@ -6,13 +6,17 @@ import { supportedLanguages } from '../config/language'
 import { settingsOptions } from '../config/settings'
 import { getThemeClasses } from '../utils/themes'
 import { useI18n } from '../hooks/useI18n'
+import PvpEntryCard from './pvp/PvpEntryCard'
 
 interface SettingsProps {
   isAuthenticated: boolean
   onRequireAuth: () => void
+  onOpenPvp: () => void
+  onRequirePvpAuth: () => void
+  pvpShakeKey: number
 }
 
-function Settings({ isAuthenticated, onRequireAuth }: SettingsProps) {
+function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onRequirePvpAuth, pvpShakeKey }: SettingsProps) {
   const settings = useTypingStore(state => state.settings)
   const setMode = useTypingStore(state => state.setMode)
   const setTime = useTypingStore(state => state.setTime)
@@ -38,6 +42,7 @@ function Settings({ isAuthenticated, onRequireAuth }: SettingsProps) {
   const isDifficultyLocked = isAiDormant && !isMemoryMode
   const aiEnabled = settings.useAI
   const isMemoryLocked = !isAuthenticated
+  const isPvpLocked = !isAuthenticated
   const aiHintText = isMemoryMode ? i18n.settings.ai.hintMemory : i18n.settings.ai.hint
   const isActionBusy = isMemoryMode ? isMemoryLoading : isGeneratingAI
   const primaryActionLabel = isMemoryMode
@@ -64,6 +69,16 @@ function Settings({ isAuthenticated, onRequireAuth }: SettingsProps) {
       className={`rounded-2xl p-6 ${themeClasses.card} border ${themeClasses.border} shadow-xl`}
     >
       <div className="space-y-6">
+        <div className="space-y-3">
+          <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>{i18n.pvp.card.sectionLabel}</label>
+          <PvpEntryCard
+            isLocked={isPvpLocked}
+            onOpen={onOpenPvp}
+            onRequireAuth={onRequirePvpAuth}
+            shakeKey={pvpShakeKey}
+          />
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] gap-6">
           <div className="space-y-2">
             <label className={`block text-sm font-semibold ${themeClasses.secondary}`}>{i18n.settings.modeLabel}</label>
