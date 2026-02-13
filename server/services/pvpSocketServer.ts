@@ -154,6 +154,7 @@ export const registerPvpSocket = (io: Server) => {
           wordCount: result.room.settings.wordCount,
           difficulty: result.room.settings.difficulty,
           language: typeof payload?.language === 'string' ? payload.language : undefined,
+          topic: result.room.settings.topic,
         })
 
         const startAt = Date.now() + pvpConfig.match.syncHoldMs + pvpConfig.match.countdownSeconds * pvpConfig.match.countdownTickMs
@@ -187,6 +188,8 @@ export const registerPvpSocket = (io: Server) => {
         accuracy: typeof payload?.accuracy === 'number' ? payload.accuracy : 0,
         errors: typeof payload?.errors === 'number' ? payload.errors : 0,
         timeSec: typeof payload?.timeSec === 'number' ? payload.timeSec : 0,
+        words: typeof payload?.words === 'number' ? payload.words : 0,
+        characters: typeof payload?.characters === 'number' ? payload.characters : 0,
       }
 
       const room = manager.updateProgress(userId, stats)
@@ -201,12 +204,28 @@ export const registerPvpSocket = (io: Server) => {
         accuracy: typeof payload?.accuracy === 'number' ? payload.accuracy : 0,
         errors: typeof payload?.errors === 'number' ? payload.errors : 0,
         timeSec: typeof payload?.timeSec === 'number' ? payload.timeSec : 0,
+        words: typeof payload?.words === 'number' ? payload.words : 0,
+        characters: typeof payload?.characters === 'number' ? payload.characters : 0,
       }
 
       const room = manager.finishPlayer(userId, stats)
       if (!room) return
 
       emitRoomState(io, room)
+
+      const words = Math.max(0, Math.floor(stats.words))
+      const characters = Math.max(0, Math.floor(stats.characters))
+      if (words > 0 || characters > 0) {
+        prisma.user.update({
+          where: { id: userId },
+          data: {
+            wordsWritten: { increment: words },
+            charactersWritten: { increment: characters },
+          },
+        }).catch((error) => {
+          console.error('PVP stats update error:', error)
+        })
+      }
 
       if (room.players.every((player) => player.status === 'finished')) {
         const finishedRoom = manager.finalizeMatch(room.id)

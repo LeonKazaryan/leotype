@@ -25,16 +25,21 @@ const buildDefaultSettings = (): PvpRoomSettings => ({
   difficulty: pvpConfig.defaults.difficulty as PvpDifficulty,
   theme: 'default',
   timeLimitSec: null,
+  topic: '',
 })
 
 const sanitizeSettings = (settings: Partial<PvpRoomSettings>): PvpRoomSettings => {
   const difficulty = (settings.difficulty ?? pvpConfig.defaults.difficulty) as PvpDifficulty
   const wordCount = clampWordCount(settings.wordCount ?? pvpConfig.defaults.wordCount)
+  const topic = typeof settings.topic === 'string'
+    ? settings.topic.trim().slice(0, pvpConfig.settings.topicMaxLength)
+    : ''
   return {
     wordCount,
     difficulty,
     theme: 'default',
     timeLimitSec: settings.timeLimitSec ?? null,
+    topic,
   }
 }
 
@@ -281,6 +286,8 @@ export class PvpRoomManager {
           accuracy: stats.accuracy,
           errors: stats.errors,
           timeSec: stats.timeSec,
+          words: stats.words,
+          characters: stats.characters,
         },
         status: player.status === 'finished' ? 'finished' : 'typing',
       })),

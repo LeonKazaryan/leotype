@@ -6,7 +6,7 @@ export type PvpLobbyTab = 'join' | 'create'
 
 export type PvpPrivacy = 'public' | 'private'
 
-export type PvpDifficulty = 'easy' | 'medium' | 'hard' | 'custom'
+export type PvpDifficulty = 'easy' | 'medium' | 'hard'
 
 export type PvpTheme = 'default'
 
@@ -17,6 +17,7 @@ export interface PvpRoomSettings {
   difficulty: PvpDifficulty
   theme: PvpTheme
   timeLimitSec: number | null
+  topic: string
 }
 
 export interface PvpPlayerStats {
@@ -24,6 +25,8 @@ export interface PvpPlayerStats {
   accuracy: number
   errors: number
   timeSec: number
+  words: number
+  characters: number
 }
 
 export interface PvpPlayer {

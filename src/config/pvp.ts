@@ -3,10 +3,11 @@ import type { PvpDifficulty, PvpPrivacy, PvpRoomSettings, PvpTheme } from '../ty
 const roomCodeAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
 const defaultRoomSettings: PvpRoomSettings = {
-  wordCount: 50,
+  wordCount: 25,
   difficulty: 'medium',
   theme: 'default',
   timeLimitSec: null,
+  topic: '',
 }
 
 export const pvpConfig = {
@@ -22,12 +23,13 @@ export const pvpConfig = {
   },
   settings: {
     wordCount: {
-      min: 10,
-      max: 200,
+      min: 15,
+      max: 50,
       step: 5,
-      quickOptions: [25, 50, 100, 150],
+      quickOptions: [15, 25, 35, 50],
     },
-    difficultyOptions: ['easy', 'medium', 'hard', 'custom'] as PvpDifficulty[],
+    topicMaxLength: 60,
+    difficultyOptions: ['easy', 'medium', 'hard'] as PvpDifficulty[],
     privacyOptions: ['public', 'private'] as PvpPrivacy[],
     themeOptions: ['default'] as PvpTheme[],
     defaultRoomSettings,
@@ -37,7 +39,6 @@ export const pvpConfig = {
       easy: 'easy',
       medium: 'medium',
       hard: 'hard',
-      custom: 'medium',
     } as Record<PvpDifficulty, 'easy' | 'medium' | 'hard'>,
   },
   ui: {
@@ -49,6 +50,7 @@ export const pvpConfig = {
     authShakeMs: 360,
     leadingBadgeMs: 800,
     goFlashMs: 350,
+    topicDebounceMs: 300,
     streakThreshold: 8,
     catchUpThreshold: 0.08,
   },

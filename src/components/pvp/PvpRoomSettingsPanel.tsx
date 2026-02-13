@@ -15,20 +15,55 @@ function PvpRoomSettingsPanel() {
 
   const [pulseKey, setPulseKey] = useState(0)
   const [showPulse, setShowPulse] = useState(false)
+  const [topicDraft, setTopicDraft] = useState('')
   const hasMountedRef = useRef(false)
+  const topicTimerRef = useRef<number | null>(null)
   const isHost = activeRoom && currentUser ? activeRoom.hostId === currentUser.id : false
 
   useEffect(() => {
     if (!activeRoom) return
     if (!hasMountedRef.current) {
       hasMountedRef.current = true
+      setTopicDraft(activeRoom.settings.topic)
       return
     }
     setPulseKey((prev) => prev + 1)
     setShowPulse(true)
     const timer = window.setTimeout(() => setShowPulse(false), pvpConfig.ui.settingsPulseMs)
     return () => window.clearTimeout(timer)
-  }, [activeRoom, activeRoom?.settings.wordCount, activeRoom?.settings.difficulty, activeRoom?.settings.theme])
+  }, [
+    activeRoom,
+    activeRoom?.settings.wordCount,
+    activeRoom?.settings.difficulty,
+    activeRoom?.settings.theme,
+    activeRoom?.settings.topic,
+  ])
+
+  useEffect(() => {
+    if (!activeRoom) return
+    setTopicDraft(activeRoom.settings.topic)
+  }, [activeRoom, activeRoom?.settings.topic])
+
+  useEffect(() => {
+    if (!isHost) return
+    if (!activeRoom) return
+    if (topicDraft === activeRoom.settings.topic) return
+
+    if (topicTimerRef.current) {
+      window.clearTimeout(topicTimerRef.current)
+    }
+
+    topicTimerRef.current = window.setTimeout(() => {
+      updateRoomSettings({ topic: topicDraft })
+    }, pvpConfig.ui.topicDebounceMs)
+
+    return () => {
+      if (topicTimerRef.current) {
+        window.clearTimeout(topicTimerRef.current)
+        topicTimerRef.current = null
+      }
+    }
+  }, [topicDraft, isHost, activeRoom, updateRoomSettings])
 
   if (!activeRoom) return null
 
@@ -115,6 +150,19 @@ function PvpRoomSettingsPanel() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div>
+          <label className={`block text-xs font-semibold ${themeClasses.secondary}`}>{i18n.pvp.room.topic}</label>
+          <input
+            type="text"
+            value={topicDraft}
+            onChange={(event) => setTopicDraft(event.target.value)}
+            placeholder={i18n.pvp.room.topicPlaceholder}
+            maxLength={pvpConfig.settings.topicMaxLength}
+            disabled={!isHost}
+            className={`mt-2 w-full px-3 py-2 rounded-lg text-xs ${themeClasses.card} border-2 ${themeClasses.border} ${themeClasses.secondary} bg-transparent focus:outline-none focus:${themeClasses.accent} ${!isHost ? 'opacity-60 cursor-not-allowed' : ''}`}
+          />
         </div>
       </div>
     </div>

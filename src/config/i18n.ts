@@ -139,6 +139,8 @@ const translations = {
         wordCount: 'Кол-во слов',
         difficulty: 'Сложность',
         theme: 'Тема',
+        topic: 'Тематика',
+        topicPlaceholder: 'Например: программирование, космос...',
         start: 'Начать матч',
         leave: 'Покинуть',
       },
@@ -173,7 +175,6 @@ const translations = {
         easy: 'Легко',
         medium: 'Средне',
         hard: 'Сложно',
-        custom: 'Кастом',
       },
       theme: {
         default: 'Словарь по умолчанию',
@@ -431,6 +432,8 @@ const translations = {
         wordCount: 'Word count',
         difficulty: 'Difficulty',
         theme: 'Theme',
+        topic: 'Topic',
+        topicPlaceholder: 'e.g. programming, space...',
         start: 'Start game',
         leave: 'Leave room',
       },
@@ -465,7 +468,6 @@ const translations = {
         easy: 'Easy',
         medium: 'Medium',
         hard: 'Hard',
-        custom: 'Custom',
       },
       theme: {
         default: 'Default dictionary',

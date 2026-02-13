@@ -65,7 +65,7 @@ interface PvpStore {
   setMatchStage: (stage: PvpMatchState['stage']) => void
   setCountdown: (value: number) => void
   updateInput: (value: string) => void
-  updateLocalMetrics: (metrics: { progress: number; wpm: number; accuracy: number; errors: number; timeSec: number }) => void
+  updateLocalMetrics: (metrics: { progress: number; wpm: number; accuracy: number; errors: number; timeSec: number; words: number; characters: number }) => void
   finishLocalPlayer: () => void
   finalizeResults: () => void
   resetMatch: () => void
@@ -275,7 +275,7 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
       : room.settings.wordCount
 
     emitPvp(pvpSocketClient.events.client.updateSettings, {
-      settings: { ...next, wordCount: nextWordCount },
+      settings: { ...next, wordCount: nextWordCount, topic: next.topic ?? room.settings.topic },
     })
   },
 
@@ -332,6 +332,8 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
           accuracy: metrics.accuracy,
           errors: metrics.errors,
           timeSec: metrics.timeSec,
+          words: metrics.words,
+          characters: metrics.characters,
         },
       })),
     }
@@ -348,11 +350,16 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
     const elapsedSeconds = (Date.now() + clockOffsetMs - match.startedAt) / 1000
     const stats = calculateStats(match.text, input, elapsedSeconds)
 
+    const words = input.trim().split(/\s+/).filter(Boolean).length
+    const characters = input.length
+
     emitPvp(pvpSocketClient.events.client.finishMatch, {
       wpm: stats.wpm,
       accuracy: stats.accuracy,
       errors: stats.characters.incorrect + stats.characters.missed + stats.characters.extra,
       timeSec: stats.time,
+      words,
+      characters,
     })
   },
 

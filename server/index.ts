@@ -9,12 +9,11 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { prisma } from './db/prisma.js'
 import { dictionaryRouter } from './routes/dictionaryRoutes.js'
-import { dictionaryService } from './services/dictionaryService.js'
 import { languageConfig } from './config/language.js'
-import { buildAIPrompt } from './config/aiPrompts.js'
 import { authErrorCodes } from './config/errorCodes.js'
 import { authConfig } from './config/auth.js'
 import { registerPvpSocket } from './services/pvpSocketServer.js'
+import { checkXaiApiKey, generateAiText } from './services/aiTextService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -222,235 +221,6 @@ app.post('/api/user/stats', async (req, res) => {
     }
 })
 
-let lastRequestTime = 0
-const MIN_REQUEST_INTERVAL = 3000
-const requestQueue: Array<{
-    resolve: (value: string) => void
-    reject: (error: Error) => void
-    params: { mode: string; count: number; topic: string; difficulty: string; language: string }
-}> = []
-let isProcessingQueue = false
-
-async function checkAPIKey(): Promise<boolean> {
-    const apiKey = process.env.XAI_API_KEY
-
-    if (!apiKey) {
-        console.error('❌ XAI_API_KEY not found in .env file')
-        return false
-    }
-
-    if (!apiKey.startsWith('xai-')) {
-        console.error('❌ Invalid API key format. Should start with "xai-"')
-        return false
-    }
-
-    try {
-        const response = await fetch('https://api.x.ai/v1/models', {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-            },
-        })
-
-        if (response.status === 401) {
-            console.error('❌ Invalid API key. Please check your XAI_API_KEY in .env')
-            return false
-        }
-
-        if (response.ok) {
-            console.log('✅ XAI API key is valid')
-            return true
-        }
-
-        console.warn(`⚠️ API key check returned status ${response.status}`)
-        return true
-    } catch (error) {
-        console.error('❌ Error checking API key:', error)
-        return false
-    }
-}
-
-async function makeXAIRequest(params: {
-    mode: string
-    count: number
-    topic: string
-    difficulty: string
-    language: string
-}): Promise<string> {
-    const { mode, count, topic, difficulty, language } = params
-    const apiKey = process.env.XAI_API_KEY
-
-    if (!apiKey) {
-        throw new Error('XAI API key not configured on server')
-    }
-
-    const resolvedLanguage = languageConfig.normalizeLanguage(language)
-    const normalizedMode = (mode === 'quote' || mode === 'words' || mode === 'time' ? mode : 'time') as
-        'time' | 'words' | 'quote'
-    const normalizedDifficulty = (
-        difficulty === 'easy' || difficulty === 'medium' || difficulty === 'hard'
-            ? difficulty
-            : 'medium'
-    ) as 'easy' | 'medium' | 'hard'
-
-    const { prompt, system } = buildAIPrompt({
-        mode: normalizedMode,
-        count,
-        topic,
-        difficulty: normalizedDifficulty,
-        language: resolvedLanguage,
-    })
-
-    const now = Date.now()
-    const timeSinceLastRequest = now - lastRequestTime
-
-    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-        const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest
-        console.log(`⏳ Waiting ${Math.ceil(waitTime / 1000)}s before request...`)
-        await new Promise(resolve => setTimeout(resolve, waitTime))
-    }
-
-    console.log(`📤 Sending request to XAI (Grok)...`)
-    const response = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-            model: 'grok-3',
-            messages: [
-                {
-                    role: 'system',
-                    content: system,
-                },
-                {
-                    role: 'user',
-                    content: prompt,
-                },
-            ],
-            max_tokens: normalizedMode === 'quote' ? 50 : count * 10,
-            temperature: 0.8,
-            stream: false,
-        }),
-    })
-
-    lastRequestTime = Date.now()
-
-    if (!response.ok) {
-        const errorData = (await response.json().catch(() => ({}))) as {
-            error?: {
-                message?: string
-                code?: string
-            }
-        }
-
-        console.error(`❌ XAI API error: ${response.status} ${response.statusText}`)
-        console.error(`Error details:`, JSON.stringify(errorData, null, 2))
-
-        if (response.status === 401) {
-            throw new Error('Invalid API key. Please check your XAI_API_KEY in .env file.')
-        }
-
-        if (response.status === 429) {
-            const errorMessage = errorData.error?.message || ''
-            const errorCode = errorData.error?.code || ''
-            const retryAfter = response.headers.get('Retry-After')
-
-            console.log(`Rate limit details: code=${errorCode}, message=${errorMessage}, retryAfter=${retryAfter}`)
-
-            // Проверка на quota/billing ошибки
-            if (errorMessage.toLowerCase().includes('quota') ||
-                errorMessage.toLowerCase().includes('billing') ||
-                errorMessage.toLowerCase().includes('insufficient_quota') ||
-                errorCode === 'insufficient_quota') {
-                throw new Error(`API quota exceeded: ${errorMessage || errorCode}. Please check your XAI account billing.`)
-            }
-
-            let waitTime = 20000
-            if (retryAfter) {
-                waitTime = parseInt(retryAfter) * 1000
-            }
-
-            throw new Error(`Rate limit exceeded. Please wait ${Math.ceil(waitTime / 1000)} seconds and try again.`)
-        }
-
-        // Проверка на другие ошибки связанные с billing (может прийти с другим статусом)
-        const errorCode = errorData.error?.code || ''
-        const errorMessage = errorData.error?.message || ''
-
-        if (errorCode === 'insufficient_quota' ||
-            errorMessage.toLowerCase().includes('quota') ||
-            errorMessage.toLowerCase().includes('billing')) {
-            throw new Error(`API quota/billing issue: ${errorMessage || errorCode}. Please check your XAI account.`)
-        }
-
-        if (response.status === 404) {
-            if (errorMessage.includes('deprecated') || errorMessage.includes('model')) {
-                throw new Error(`Model error: ${errorMessage}`)
-            }
-            throw new Error(`XAI API error (404): ${errorMessage || response.statusText}`)
-        }
-
-        if (response.status === 500 || response.status === 502 || response.status === 503) {
-            throw new Error(`XAI service error (${response.status}): ${errorMessage || response.statusText}`)
-        }
-
-        throw new Error(`XAI API error (${response.status}): ${errorMessage || response.statusText}`)
-    }
-
-    const data = (await response.json()) as {
-        choices?: Array<{
-            message?: {
-                content?: string
-            }
-        }>
-    }
-    const generatedText = data.choices?.[0]?.message?.content?.trim()
-
-    if (!generatedText) {
-        console.error('❌ No text in response:', data)
-        throw new Error('No text generated')
-    }
-
-    console.log(`✅ Successfully generated ${generatedText.length} characters`)
-    try {
-        await dictionaryService.ingestGeneratedText({ text: generatedText, difficulty, mode, language: resolvedLanguage })
-    } catch (error) {
-        console.error('❌ Failed to ingest dictionary words:', error)
-    }
-    return generatedText
-}
-
-async function processQueue() {
-    if (isProcessingQueue || requestQueue.length === 0) {
-        return
-    }
-
-    isProcessingQueue = true
-
-    while (requestQueue.length > 0) {
-        const request = requestQueue.shift()
-        if (!request) continue
-
-        try {
-            const topicLabel = request.params.topic.trim() || 'no topic'
-            const languageLabel = languageConfig.normalizeLanguage(request.params.language)
-            console.log(`📝 Processing request: ${topicLabel} (${request.params.difficulty}, ${languageLabel})`)
-            const result = await makeXAIRequest(request.params)
-            request.resolve(result)
-        } catch (error) {
-            if (error instanceof Error) {
-                console.error(`❌ Request failed: ${error.message}`)
-                request.reject(error)
-            } else {
-                request.reject(new Error('Unknown error occurred'))
-            }
-        }
-    }
-
-    isProcessingQueue = false
-}
-
 app.post('/api/generate-text', async (req: express.Request, res: express.Response) => {
     try {
         const { mode, count, topic, difficulty, language } = req.body
@@ -468,10 +238,7 @@ app.post('/api/generate-text', async (req: express.Request, res: express.Respons
             ? language
             : languageConfig.defaultLanguage
 
-        const result = await new Promise<string>((resolve, reject) => {
-            requestQueue.push({ resolve, reject, params: { mode, count, topic, difficulty, language: resolvedLanguage } })
-            processQueue()
-        })
+        const result = await generateAiText({ mode, count, topic, difficulty, language: resolvedLanguage })
 
         res.json({ text: result })
     } catch (error) {
@@ -507,9 +274,14 @@ app.get('/', (req: express.Request, res: express.Response) => {
 app.get('/api/health', (req: express.Request, res: express.Response) => {
     res.json({
         status: 'ok',
-        isProcessing: isProcessingQueue,
-        queueLength: requestQueue.length,
-        lastRequestTime: lastRequestTime ? new Date(lastRequestTime).toISOString() : null,
+        hasApiKey: !!process.env.XAI_API_KEY,
+    })
+})
+
+app.get('/api/health/ai', async (req: express.Request, res: express.Response) => {
+    const isValid = await checkXaiApiKey()
+    res.json({
+        status: isValid ? 'ok' : 'invalid',
         hasApiKey: !!process.env.XAI_API_KEY
     })
 })
@@ -527,7 +299,7 @@ httpServer.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`)
     console.log(`📋 Queue system ready`)
 
-    const apiKeyValid = await checkAPIKey()
+    const apiKeyValid = await checkXaiApiKey()
     if (!apiKeyValid) {
         console.log('⚠️  Server started but API key check failed. AI generation may not work.')
     }

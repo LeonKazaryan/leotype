@@ -122,8 +122,17 @@ function PvpMatchView() {
       ? Math.min(100, Math.max(0, Math.round((1 - errors / match.text.length) * 100)))
       : 100
     const progress = getProgress(input.length, match.text.length)
+    const characters = input.length
 
-    updateLocalMetrics({ progress, wpm, accuracy, errors, timeSec: elapsedSec })
+    updateLocalMetrics({
+      progress,
+      wpm,
+      accuracy,
+      errors,
+      timeSec: elapsedSec,
+      words: wordsTyped,
+      characters,
+    })
     lastEmitRef.current = now
   }, [input, match.stage, match.startedAt, match.text, match.text.length, localPlayer, updateLocalMetrics, isLocalFinished, clockOffsetMs])
 

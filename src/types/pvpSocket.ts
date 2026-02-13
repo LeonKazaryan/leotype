@@ -14,6 +14,8 @@ export interface PvpServerPlayer {
     accuracy: number
     errors: number
     timeSec: number
+    words: number
+    characters: number
   } | null
 }
 

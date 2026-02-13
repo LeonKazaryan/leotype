@@ -10,15 +10,15 @@ export const pvpConfig = {
   },
   settings: {
     wordCount: {
-      min: 10,
-      max: 200,
+      min: 15,
+      max: 50,
       step: 5,
     },
+    topicMaxLength: 60,
     difficultyMap: {
       easy: 'easy',
       medium: 'medium',
       hard: 'hard',
-      custom: 'medium',
     },
   },
   match: {
@@ -34,7 +34,7 @@ export const pvpConfig = {
     pingMs: 28,
     fallbackUsername: 'Player',
     modeLabel: 'Words',
-    wordCount: 50,
+    wordCount: 25,
     difficulty: 'medium',
   },
 }
