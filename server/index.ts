@@ -74,18 +74,24 @@ function getJwtSecret() {
     return JWT_SECRET
 }
 
-function getUserIdFromRequest(req: express.Request): string | null {
+function getUserIdFromRequest(req: express.Request): { userId: string | null; error?: string } {
     const authHeader = req.header('authorization')
-    if (!authHeader) return null
+    if (!authHeader) return { userId: null, error: 'missing_authorization' }
 
-    const match = authHeader.match(/^Bearer\\s+(.+)$/i)
-    if (!match) return null
+    const match = authHeader.match(/^Bearer\s+(.+)$/i)
+    if (!match) return { userId: null, error: 'invalid_authorization_format' }
 
     try {
         const payload = jwt.verify(match[1], getJwtSecret()) as jwt.JwtPayload
-        return typeof payload.sub === 'string' ? payload.sub : null
-    } catch {
-        return null
+        return { userId: typeof payload.sub === 'string' ? payload.sub : null }
+    } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            return { userId: null, error: 'token_expired' }
+        }
+        if (error instanceof jwt.JsonWebTokenError) {
+            return { userId: null, error: `token_invalid:${error.message}` }
+        }
+        return { userId: null, error: 'token_invalid' }
     }
 }
 
@@ -178,9 +184,9 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.post('/api/user/stats', async (req, res) => {
     try {
-        const userId = getUserIdFromRequest(req)
-        if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized' })
+        const auth = getUserIdFromRequest(req)
+        if (!auth.userId) {
+            return res.status(401).json({ error: 'Unauthorized', code: auth.error || 'unauthorized' })
         }
 
         const rawCharacters = Number(req.body?.characters)
@@ -198,7 +204,7 @@ app.post('/api/user/stats', async (req, res) => {
         }
 
         await prisma.user.update({
-            where: { id: userId },
+            where: { id: auth.userId },
             data: {
                 charactersWritten: { increment: characters },
                 wordsWritten: { increment: words },
