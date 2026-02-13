@@ -83,6 +83,7 @@ export type PvpErrorCode =
   | 'MATCH_IN_PROGRESS'
   | 'NOT_IN_ROOM'
   | 'UNAUTHORIZED'
+  | 'ROOM_CLOSED'
   | 'TEXT_GENERATION_FAILED'
   | 'UNKNOWN_ERROR'
 

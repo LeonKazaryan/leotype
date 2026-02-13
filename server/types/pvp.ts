@@ -74,3 +74,4 @@ export type PvpErrorCode =
   | 'TEXT_GENERATION_FAILED'
   | 'NOT_IN_ROOM'
   | 'UNAUTHORIZED'
+  | 'ROOM_CLOSED'

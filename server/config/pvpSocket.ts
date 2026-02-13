@@ -6,6 +6,8 @@ export const pvpSocketEvents = {
     leaveRoom: 'pvp:room:leave',
     setReady: 'pvp:room:ready',
     updateSettings: 'pvp:room:settings',
+    resetRoom: 'pvp:room:reset',
+    destroyRoom: 'pvp:room:destroy',
     startMatch: 'pvp:match:start',
     updateProgress: 'pvp:match:progress',
     finishMatch: 'pvp:match:finish',

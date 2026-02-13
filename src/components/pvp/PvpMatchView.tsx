@@ -42,6 +42,7 @@ function PvpMatchView() {
   const finishLocalPlayer = usePvpStore((state) => state.finishLocalPlayer)
   const currentUser = usePvpStore((state) => state.currentUser)
   const clockOffsetMs = usePvpStore((state) => state.clockOffsetMs)
+  const leaveRoom = usePvpStore((state) => state.leaveRoom)
 
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const lastEmitRef = useRef(0)
@@ -159,6 +160,14 @@ function PvpMatchView() {
         animate={{ opacity: 1, scale: 1 }}
         className={`relative w-full max-w-6xl rounded-3xl border ${themeClasses.border} ${themeClasses.card} p-6 md:p-8 shadow-2xl overflow-hidden`}
       >
+        <button
+          type="button"
+          onClick={leaveRoom}
+          aria-label={i18n.common.close}
+          className={`absolute top-4 right-4 z-30 text-lg ${themeClasses.secondary} hover:${themeClasses.primary} transition-colors`}
+        >
+          ✕
+        </button>
         <PvpCountdownOverlay value={match.countdown} show={showCountdown} />
         {showGo && (
           <motion.div

@@ -7,14 +7,13 @@ import { useI18n } from '../../hooks/useI18n'
 
 function PvpResultsView() {
   const theme = useTypingStore((state) => state.settings.theme)
-  const language = useTypingStore((state) => state.settings.language)
   const themeClasses = getThemeClasses(theme)
   const i18n = useI18n()
 
   const activeRoom = usePvpStore((state) => state.activeRoom)
   const currentUser = usePvpStore((state) => state.currentUser)
-  const startMatch = usePvpStore((state) => state.startMatch)
-  const resetMatch = usePvpStore((state) => state.resetMatch)
+  const resetRoom = usePvpStore((state) => state.resetRoom)
+  const destroyRoom = usePvpStore((state) => state.destroyRoom)
   const leaveRoom = usePvpStore((state) => state.leaveRoom)
 
   const sortedPlayers = useMemo(() => {
@@ -78,29 +77,44 @@ function PvpResultsView() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            {isHost && (
-              <button
-                type="button"
-                onClick={() => startMatch(language)}
-                className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${themeClasses.border} ${themeClasses.accent}`}
-              >
-                {i18n.pvp.results.rematch}
-              </button>
+            {isHost ? (
+              <>
+                <button
+                  type="button"
+                  onClick={resetRoom}
+                  className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${themeClasses.border} ${themeClasses.accent}`}
+                >
+                  {i18n.pvp.results.playAgain}
+                </button>
+                <button
+                  type="button"
+                  onClick={destroyRoom}
+                  className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${themeClasses.border} ${themeClasses.secondary}`}
+                >
+                  {i18n.pvp.results.leaveRoom}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled
+                  className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${themeClasses.border} ${themeClasses.secondary} opacity-70 cursor-not-allowed`}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-current animate-pulse" />
+                    {i18n.pvp.results.waitHost}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={leaveRoom}
+                  className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${themeClasses.border} ${themeClasses.secondary}`}
+                >
+                  {i18n.pvp.results.leave}
+                </button>
+              </>
             )}
-            <button
-              type="button"
-              onClick={resetMatch}
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${themeClasses.border} ${themeClasses.primary}`}
-            >
-              {i18n.pvp.results.settings}
-            </button>
-            <button
-              type="button"
-              onClick={leaveRoom}
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors ${themeClasses.border} ${themeClasses.secondary}`}
-            >
-              {i18n.pvp.results.leave}
-            </button>
           </div>
         </div>
       </motion.div>

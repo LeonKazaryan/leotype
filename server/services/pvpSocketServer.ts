@@ -139,6 +139,36 @@ export const registerPvpSocket = (io: Server) => {
       }
     })
 
+    socket.on(pvpSocketEvents.client.resetRoom, () => {
+      const result = manager.resetRoom(userId)
+      if (result.error) {
+        emitError(socket, result.error)
+        return
+      }
+      if (result.room) {
+        emitRoomState(io, result.room)
+        emitLobby(io)
+      }
+    })
+
+    socket.on(pvpSocketEvents.client.destroyRoom, () => {
+      const result = manager.destroyRoom(userId)
+      if (result.error) {
+        emitError(socket, result.error)
+        return
+      }
+      if (result.removedRoomId && result.playerIds) {
+        io.to(result.removedRoomId).emit(pvpSocketEvents.server.error, { code: 'ROOM_CLOSED' })
+        for (const client of io.sockets.sockets.values()) {
+          if (result.playerIds.includes(client.data.userId)) {
+            client.leave(result.removedRoomId)
+          }
+        }
+        clearRoomTimers(result.removedRoomId)
+        emitLobby(io)
+      }
+    })
+
     socket.on(pvpSocketEvents.client.startMatch, async (payload) => {
       const result = manager.beginMatch(userId)
       if (result.error) {

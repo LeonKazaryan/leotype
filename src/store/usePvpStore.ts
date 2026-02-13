@@ -61,6 +61,8 @@ interface PvpStore {
   leaveRoom: () => void
   toggleReady: (playerId: string) => void
   updateRoomSettings: (next: Partial<PvpRoomSettings>) => void
+  resetRoom: () => void
+  destroyRoom: () => void
   startMatch: (language: 'ru' | 'en') => void
   setMatchStage: (stage: PvpMatchState['stage']) => void
   setCountdown: (value: number) => void
@@ -188,6 +190,20 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
     })
 
     onPvp(pvpSocketClient.events.server.error, (payload: { code: PvpErrorCode }) => {
+      if (payload.code === 'ROOM_CLOSED') {
+        set({
+          roomsError: payload.code,
+          phase: 'lobby',
+          isLobbyOpen: true,
+          activeRoom: null,
+          match: defaultMatchState,
+          input: '',
+          inputTimestamps: [],
+          streakCount: 0,
+          errorShakeKey: 0,
+        })
+        return
+      }
       set({ roomsError: payload.code })
     })
   },
@@ -276,6 +292,24 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
 
     emitPvp(pvpSocketClient.events.client.updateSettings, {
       settings: { ...next, wordCount: nextWordCount, topic: next.topic ?? room.settings.topic },
+    })
+  },
+
+  resetRoom: () => {
+    emitPvp(pvpSocketClient.events.client.resetRoom)
+  },
+
+  destroyRoom: () => {
+    emitPvp(pvpSocketClient.events.client.destroyRoom)
+    set({
+      phase: 'lobby',
+      isLobbyOpen: true,
+      activeRoom: null,
+      match: defaultMatchState,
+      input: '',
+      inputTimestamps: [],
+      streakCount: 0,
+      errorShakeKey: 0,
     })
   },
 

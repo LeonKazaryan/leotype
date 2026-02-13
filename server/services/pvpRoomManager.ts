@@ -228,6 +228,41 @@ export class PvpRoomManager {
     return { room: updated }
   }
 
+  resetRoom(playerId: string): { room?: PvpRoom; error?: PvpErrorCode } {
+    const room = this.getRoomForPlayer(playerId)
+    if (!room) return { error: 'NOT_IN_ROOM' }
+    if (room.hostId !== playerId) return { error: 'NOT_HOST' }
+
+    const updated: PvpRoom = {
+      ...room,
+      players: room.players.map((player) => ({
+        ...player,
+        progress: 0,
+        stats: null,
+        status: 'in_lobby',
+        isReady: false,
+      })),
+      match: {
+        ...buildDefaultMatch(),
+        stage: 'lobby',
+      },
+    }
+
+    this.rooms.set(room.id, updated)
+    return { room: updated }
+  }
+
+  destroyRoom(playerId: string): { removedRoomId?: string; playerIds?: string[]; error?: PvpErrorCode } {
+    const room = this.getRoomForPlayer(playerId)
+    if (!room) return { error: 'NOT_IN_ROOM' }
+    if (room.hostId !== playerId) return { error: 'NOT_HOST' }
+
+    const playerIds = room.players.map((player) => player.id)
+    this.rooms.delete(room.id)
+    playerIds.forEach((id) => this.playerRoom.delete(id))
+    return { removedRoomId: room.id, playerIds }
+  }
+
   setMatchCountdown(roomId: string, params: { text: string; startAt: number }) {
     const room = this.rooms.get(roomId)
     if (!room) return null
