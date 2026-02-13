@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
 import { prisma } from './db/prisma.js'
 import { dictionaryRouter } from './routes/dictionaryRoutes.js'
 import { dictionaryService } from './services/dictionaryService.js'
@@ -12,6 +14,7 @@ import { languageConfig } from './config/language.js'
 import { buildAIPrompt } from './config/aiPrompts.js'
 import { authErrorCodes } from './config/errorCodes.js'
 import { authConfig } from './config/auth.js'
+import { registerPvpSocket } from './services/pvpSocketServer.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -23,6 +26,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const app = express()
+const httpServer = createServer(app)
 const PORT = process.env.PORT || 3001
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -510,7 +514,16 @@ app.get('/api/health', (req: express.Request, res: express.Response) => {
     })
 })
 
-app.listen(PORT, async () => {
+const io = new Server(httpServer, {
+    cors: {
+        origin: allowedOrigins,
+        credentials: true,
+    },
+})
+
+registerPvpSocket(io)
+
+httpServer.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`)
     console.log(`📋 Queue system ready`)
 

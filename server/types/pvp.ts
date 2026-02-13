@@ -1,15 +1,7 @@
-export type PvpPhase = 'idle' | 'lobby' | 'room' | 'match' | 'results'
-
-export type PvpMatchStage = 'idle' | 'generating' | 'syncing' | 'countdown' | 'typing' | 'finished'
-
-export type PvpLobbyTab = 'join' | 'create'
-
 export type PvpPrivacy = 'public' | 'private'
-
 export type PvpDifficulty = 'easy' | 'medium' | 'hard' | 'custom'
-
 export type PvpTheme = 'default'
-
+export type PvpStage = 'lobby' | 'syncing' | 'countdown' | 'typing' | 'finished'
 export type PvpPlayerStatus = 'in_lobby' | 'loading' | 'typing' | 'finished'
 
 export interface PvpRoomSettings {
@@ -36,8 +28,14 @@ export interface PvpPlayer {
   progress: number
   status: PvpPlayerStatus
   stats: PvpPlayerStats | null
-  isLocal: boolean
-  botProfile?: PvpBotProfile
+}
+
+export interface PvpMatchState {
+  stage: PvpStage
+  text: string
+  startAt: number | null
+  finishedAt: number | null
+  firstFinishAt: number | null
 }
 
 export interface PvpRoom {
@@ -50,6 +48,7 @@ export interface PvpRoom {
   settings: PvpRoomSettings
   players: PvpPlayer[]
   createdAt: number
+  match: PvpMatchState
 }
 
 export interface PvpPublicRoom {
@@ -63,27 +62,12 @@ export interface PvpPublicRoom {
   pingMs: number
 }
 
-export interface PvpMatchState {
-  stage: PvpMatchStage
-  countdown: number
-  text: string
-  startedAt: number | null
-  finishedAt: number | null
-  firstFinishAt: number | null
-}
-
 export type PvpErrorCode =
-  | 'ROOMS_LOAD_FAILED'
   | 'ROOM_NOT_FOUND'
   | 'ROOM_FULL'
   | 'NOT_HOST'
+  | 'INVALID_SETTINGS'
   | 'MATCH_IN_PROGRESS'
+  | 'TEXT_GENERATION_FAILED'
   | 'NOT_IN_ROOM'
   | 'UNAUTHORIZED'
-  | 'TEXT_GENERATION_FAILED'
-  | 'UNKNOWN_ERROR'
-
-export interface PvpBotProfile {
-  wpm: number
-  accuracy: number
-}

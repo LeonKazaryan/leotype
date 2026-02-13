@@ -31,6 +31,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
   const openPvpLobby = usePvpStore((state) => state.openLobby)
   const closePvpLobby = usePvpStore((state) => state.closeLobby)
+  const disconnectPvpSocket = usePvpStore((state) => state.disconnectSocket)
   
   useEffect(() => {
     document.body.className = themeClasses.body
@@ -86,6 +87,7 @@ function App() {
             setCurrentUser(null)
             goToSettings()
             closePvpLobby()
+            disconnectPvpSocket()
           }}
         />
         <div className="mt-8 space-y-6">

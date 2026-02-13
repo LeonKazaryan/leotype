@@ -10,12 +10,22 @@ import type {
   PvpRoomSettings,
   PvpErrorCode,
 } from '../types/pvp'
+import type { PvpServerRoom } from '../types/pvpSocket'
 import { pvpConfig } from '../config/pvp'
-import { fetchPublicRooms, buildLocalRoom, buildRoomFromPublic, generatePvpText } from '../services/pvpService'
 import { calculateStats } from '../utils/stats'
 import { updateInputTimestamps } from '../utils/typingMetrics'
 import { areCharsEquivalent } from '../utils/charCompare'
 import { clampWordCount } from '../utils/pvp'
+import {
+  connectPvpSocket,
+  disconnectPvpSocket,
+  emitPvp,
+  getPvpSocket,
+  offPvp,
+  onPvp,
+  PvpSocketStatus,
+  pvpSocketClient,
+} from '../services/pvpSocketClient'
 
 interface PvpStore {
   phase: PvpPhase
@@ -37,9 +47,12 @@ interface PvpStore {
   inputTimestamps: number[]
   streakCount: number
   errorShakeKey: number
+  socketStatus: PvpSocketStatus
+  clockOffsetMs: number
 
-  openLobby: (user: AuthUser) => Promise<void>
+  openLobby: (user: AuthUser) => void
   closeLobby: () => void
+  disconnectSocket: () => void
   setLobbyTab: (tab: PvpLobbyTab) => void
   setJoinCode: (code: string) => void
   setCreateForm: (field: 'maxPlayers' | 'privacy' | 'roomName', value: string | number) => void
@@ -48,16 +61,14 @@ interface PvpStore {
   leaveRoom: () => void
   toggleReady: (playerId: string) => void
   updateRoomSettings: (next: Partial<PvpRoomSettings>) => void
-  startMatch: (language: 'ru' | 'en') => Promise<void>
+  startMatch: (language: 'ru' | 'en') => void
   setMatchStage: (stage: PvpMatchState['stage']) => void
   setCountdown: (value: number) => void
   updateInput: (value: string) => void
   updateLocalMetrics: (metrics: { progress: number; wpm: number; accuracy: number; errors: number; timeSec: number }) => void
   finishLocalPlayer: () => void
-  updateMatch: (next: Partial<PvpMatchState>) => void
   finalizeResults: () => void
   resetMatch: () => void
-  setActiveRoomPlayers: (players: PvpPlayer[]) => void
 }
 
 const defaultMatchState: PvpMatchState = {
@@ -78,51 +89,22 @@ const defaultCreateForm = {
 const updatePlayer = (players: PvpPlayer[], id: string, updater: (player: PvpPlayer) => PvpPlayer) =>
   players.map((player) => (player.id === id ? updater(player) : player))
 
-const resetPlayersForMatch = (players: PvpPlayer[]) =>
-  players.map((player) => ({
-    ...player,
-    progress: 0,
-    status: 'loading' as const,
-    stats: null,
-  }))
-
-const resetPlayersForRoom = (players: PvpPlayer[]) =>
-  players.map((player) => ({
-    ...player,
-    progress: 0,
-    status: 'in_lobby' as const,
-    stats: null,
-  }))
-
-const stripBots = (players: PvpPlayer[]) => players.filter((player) => !player.botProfile)
-
-const fillWithBots = (room: PvpRoom) => {
-  const missing = room.maxPlayers - room.players.length
-  if (missing <= 0) return room
-
-  const now = Date.now()
-  const bots = Array.from({ length: missing }, (_, index) => {
-    const profile = pvpConfig.mock.botProfiles[index % pvpConfig.mock.botProfiles.length]
-    const botName = pvpConfig.mock.botNames[index % pvpConfig.mock.botNames.length]
-    return {
-      id: `bot_${now}_${index}`,
-      nickname: botName,
-      avatarSeed: botName,
-      isHost: false,
-      isReady: true,
-      pingMs: Math.round((pvpConfig.mock.pingRangeMs.min + pvpConfig.mock.pingRangeMs.max) / 2),
-      progress: 0,
-      status: 'in_lobby' as const,
-      stats: null,
-      isLocal: false,
-      botProfile: profile,
-    } as PvpPlayer
-  })
-
+const mapServerRoom = (room: PvpServerRoom, userId: string | null): PvpRoom => {
+  const { match: ignoredMatch, ...rest } = room
+  void ignoredMatch
   return {
-    ...room,
-    players: [...room.players, ...bots],
+    ...rest,
+    players: room.players.map((player) => ({
+      ...player,
+      isLocal: player.id === userId,
+    })),
   }
+}
+
+const mapServerStage = (stage: PvpServerRoom['match']['stage'], text: string): PvpMatchState['stage'] => {
+  if (stage === 'lobby') return 'idle'
+  if (stage === 'syncing') return text.length > 0 ? 'syncing' : 'generating'
+  return stage
 }
 
 export const usePvpStore = create<PvpStore>((set, get) => ({
@@ -141,8 +123,17 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
   inputTimestamps: [],
   streakCount: 0,
   errorShakeKey: 0,
+  socketStatus: 'disconnected',
+  clockOffsetMs: 0,
 
-  openLobby: async (user) => {
+  openLobby: (user) => {
+    disconnectPvpSocket()
+    const socket = connectPvpSocket()
+    if (!socket) {
+      set({ roomsError: 'UNAUTHORIZED' })
+      return
+    }
+
     set({
       currentUser: user,
       phase: 'lobby',
@@ -150,20 +141,62 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
       isLoadingRooms: true,
       roomsError: null,
       publicRooms: [],
+      socketStatus: 'connecting',
     })
 
-    try {
-      const rooms = await fetchPublicRooms()
-      set({ publicRooms: rooms, isLoadingRooms: false })
-    } catch (error) {
+    socket.on('connect', () => {
+      set({ socketStatus: 'connected' })
+      emitPvp(pvpSocketClient.events.client.requestRooms)
+    })
+
+    socket.on('disconnect', () => {
+      set({ socketStatus: 'disconnected' })
+    })
+
+    onPvp(pvpSocketClient.events.server.rooms, (payload: { rooms: PvpPublicRoom[] }) => {
+      set({ publicRooms: payload.rooms, isLoadingRooms: false })
+    })
+
+    onPvp(pvpSocketClient.events.server.roomState, (payload: { room: PvpServerRoom; serverTime?: number }) => {
+      const { room, serverTime } = payload
+      const currentUserId = get().currentUser?.id ?? null
+      const mappedRoom = mapServerRoom(room, currentUserId)
+      const mappedStage = mapServerStage(room.match.stage, room.match.text)
+      const match: PvpMatchState = {
+        stage: mappedStage,
+        countdown: get().match.countdown,
+        text: room.match.text,
+        startedAt: room.match.startAt,
+        finishedAt: room.match.finishedAt,
+        firstFinishAt: room.match.firstFinishAt,
+      }
+
+      const nextPhase: PvpPhase = room.match.stage === 'finished'
+        ? 'results'
+        : room.match.stage === 'syncing' || room.match.stage === 'countdown' || room.match.stage === 'typing'
+          ? 'match'
+          : 'room'
+
       set({
-        roomsError: 'ROOMS_LOAD_FAILED',
-        isLoadingRooms: false,
+        activeRoom: mappedRoom,
+        match,
+        phase: nextPhase,
+        isLobbyOpen: nextPhase !== 'match',
+        roomsError: null,
+        clockOffsetMs: typeof serverTime === 'number' ? serverTime - Date.now() : get().clockOffsetMs,
       })
-    }
+    })
+
+    onPvp(pvpSocketClient.events.server.error, (payload: { code: PvpErrorCode }) => {
+      set({ roomsError: payload.code })
+    })
   },
 
   closeLobby: () => {
+    const phase = get().phase
+    if (phase === 'lobby' || phase === 'idle') {
+      disconnectPvpSocket()
+    }
     set({
       phase: 'idle',
       isLobbyOpen: false,
@@ -176,7 +209,13 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
       inputTimestamps: [],
       streakCount: 0,
       errorShakeKey: 0,
+      socketStatus: 'disconnected',
     })
+  },
+
+  disconnectSocket: () => {
+    disconnectPvpSocket()
+    set({ socketStatus: 'disconnected' })
   },
 
   setLobbyTab: (tab) => set({ lobbyTab: tab }),
@@ -193,55 +232,25 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
   },
 
   joinRoom: (code) => {
-    const { publicRooms, currentUser } = get()
-    if (!currentUser) return
-
-    const matched = publicRooms.find((room) => room.code === code)
-    if (!matched) {
-      set({ roomsError: 'ROOM_NOT_FOUND' })
-      return
-    }
-
-    const room = buildRoomFromPublic({
-      room: matched,
-      user: currentUser,
-      settings: pvpConfig.settings.defaultRoomSettings,
-    })
-
-    set({
-      activeRoom: room,
-      phase: 'room',
-      roomsError: null,
-    })
+    emitPvp(pvpSocketClient.events.client.joinRoom, { code })
   },
 
   createRoom: () => {
-    const { currentUser, createForm } = get()
-    if (!currentUser) return
-
-    const maxPlayers = Math.min(Math.max(createForm.maxPlayers, pvpConfig.room.minPlayers), pvpConfig.room.maxPlayers)
-
-    const room = buildLocalRoom({
-      host: currentUser,
-      maxPlayers,
+    const { createForm } = get()
+    emitPvp(pvpSocketClient.events.client.createRoom, {
+      maxPlayers: createForm.maxPlayers,
       privacy: createForm.privacy,
       name: createForm.roomName,
       settings: pvpConfig.settings.defaultRoomSettings,
     })
-
-    set({
-      activeRoom: room,
-      phase: 'room',
-      roomsError: null,
-    })
   },
 
   leaveRoom: () => {
+    emitPvp(pvpSocketClient.events.client.leaveRoom)
     set({
       phase: 'lobby',
       isLobbyOpen: true,
       activeRoom: null,
-      roomsError: null,
       match: defaultMatchState,
       input: '',
       inputTimestamps: [],
@@ -251,85 +260,27 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
   },
 
   toggleReady: (playerId) => {
-    const { activeRoom } = get()
-    if (!activeRoom) return
-
-    set({
-      activeRoom: {
-        ...activeRoom,
-        players: updatePlayer(activeRoom.players, playerId, (player) => ({
-          ...player,
-          isReady: !player.isReady,
-        })),
-      },
-    })
+    const room = get().activeRoom
+    if (!room) return
+    const player = room.players.find((item) => item.id === playerId)
+    emitPvp(pvpSocketClient.events.client.setReady, { ready: !player?.isReady })
   },
 
   updateRoomSettings: (next) => {
-    const { activeRoom } = get()
-    if (!activeRoom) return
+    const room = get().activeRoom
+    if (!room) return
 
     const nextWordCount = typeof next.wordCount === 'number'
       ? clampWordCount(next.wordCount)
-      : activeRoom.settings.wordCount
+      : room.settings.wordCount
 
-    set({
-      activeRoom: {
-        ...activeRoom,
-        settings: {
-          ...activeRoom.settings,
-          ...next,
-          wordCount: nextWordCount,
-        },
-      },
+    emitPvp(pvpSocketClient.events.client.updateSettings, {
+      settings: { ...next, wordCount: nextWordCount },
     })
   },
 
-  startMatch: async (language) => {
-    const { activeRoom } = get()
-    if (!activeRoom) return
-    const roomWithBots = fillWithBots(activeRoom)
-
-    set({
-      phase: 'match',
-      isLobbyOpen: false,
-      roomsError: null,
-      match: { ...defaultMatchState, stage: 'generating' },
-      activeRoom: {
-        ...roomWithBots,
-        players: resetPlayersForMatch(roomWithBots.players),
-      },
-      input: '',
-      inputTimestamps: [],
-      streakCount: 0,
-      errorShakeKey: 0,
-    })
-
-    try {
-      const text = await generatePvpText({
-        wordCount: activeRoom.settings.wordCount,
-        difficulty: activeRoom.settings.difficulty,
-        language,
-      })
-
-      set((state) => ({
-        match: {
-          ...state.match,
-          text,
-          stage: 'syncing',
-        },
-      }))
-    } catch (error) {
-      set({
-        match: { ...defaultMatchState, stage: 'idle' },
-        phase: 'room',
-        roomsError: 'TEXT_GENERATION_FAILED',
-        activeRoom: activeRoom ? {
-          ...activeRoom,
-          players: resetPlayersForRoom(stripBots(activeRoom.players)),
-        } : null,
-      })
-    }
+  startMatch: (language) => {
+    emitPvp(pvpSocketClient.events.client.startMatch, { language })
   },
 
   setMatchStage: (stage) => set((state) => ({ match: { ...state.match, stage } })),
@@ -340,17 +291,16 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
     const { match, input, inputTimestamps } = get()
     if (match.stage !== 'typing') return
 
-    const nextValue = value
     const now = Date.now()
-    const nextTimestamps = updateInputTimestamps(inputTimestamps, input.length, nextValue.length, now)
+    const nextTimestamps = updateInputTimestamps(inputTimestamps, input.length, value.length, now)
 
     let nextStreak = get().streakCount
     let nextShakeKey = get().errorShakeKey
     const prevLength = input.length
 
-    if (nextValue.length > prevLength && match.text.length >= nextValue.length) {
-      const index = nextValue.length - 1
-      const isCorrect = areCharsEquivalent(match.text[index], nextValue[index])
+    if (value.length > prevLength && match.text.length >= value.length) {
+      const index = value.length - 1
+      const isCorrect = areCharsEquivalent(match.text[index], value[index])
       if (isCorrect) {
         nextStreak += 1
       } else {
@@ -360,7 +310,7 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
     }
 
     set({
-      input: nextValue,
+      input: value,
       inputTimestamps: nextTimestamps,
       streakCount: nextStreak,
       errorShakeKey: nextShakeKey,
@@ -371,62 +321,39 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
     const { activeRoom, currentUser } = get()
     if (!activeRoom || !currentUser) return
 
-    set({
-      activeRoom: {
-        ...activeRoom,
-        players: updatePlayer(activeRoom.players, currentUser.id, (player) => ({
-          ...player,
-          progress: metrics.progress,
-          status: player.status === 'finished' ? 'finished' : 'typing',
-          stats: {
-            wpm: metrics.wpm,
-            accuracy: metrics.accuracy,
-            errors: metrics.errors,
-            timeSec: metrics.timeSec,
-          },
-        })),
-      },
-    })
+    const updatedRoom = {
+      ...activeRoom,
+      players: updatePlayer(activeRoom.players, currentUser.id, (player) => ({
+        ...player,
+        progress: metrics.progress,
+        status: player.status === 'finished' ? 'finished' : 'typing',
+        stats: {
+          wpm: metrics.wpm,
+          accuracy: metrics.accuracy,
+          errors: metrics.errors,
+          timeSec: metrics.timeSec,
+        },
+      })),
+    }
+
+    set({ activeRoom: updatedRoom })
+
+    emitPvp(pvpSocketClient.events.client.updateProgress, metrics)
   },
 
   finishLocalPlayer: () => {
-    const { activeRoom, currentUser, match, input } = get()
+    const { activeRoom, currentUser, match, input, clockOffsetMs } = get()
     if (!activeRoom || !currentUser || !match.startedAt) return
 
-    const elapsedSeconds = (Date.now() - match.startedAt) / 1000
+    const elapsedSeconds = (Date.now() + clockOffsetMs - match.startedAt) / 1000
     const stats = calculateStats(match.text, input, elapsedSeconds)
 
-    set((state) => ({
-      activeRoom: state.activeRoom
-        ? {
-          ...state.activeRoom,
-          players: updatePlayer(state.activeRoom.players, currentUser.id, (player) => ({
-            ...player,
-            progress: 1,
-            status: 'finished',
-            stats: {
-              wpm: stats.wpm,
-              accuracy: stats.accuracy,
-              errors: stats.characters.incorrect + stats.characters.missed + stats.characters.extra,
-              timeSec: stats.time,
-            },
-          })),
-        }
-        : null,
-      match: {
-        ...state.match,
-        firstFinishAt: state.match.firstFinishAt ?? Date.now(),
-      },
-    }))
-  },
-
-  updateMatch: (next) => {
-    set((state) => ({
-      match: {
-        ...state.match,
-        ...next,
-      },
-    }))
+    emitPvp(pvpSocketClient.events.client.finishMatch, {
+      wpm: stats.wpm,
+      accuracy: stats.accuracy,
+      errors: stats.characters.incorrect + stats.characters.missed + stats.characters.extra,
+      timeSec: stats.time,
+    })
   },
 
   finalizeResults: () => {
@@ -437,9 +364,6 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
   },
 
   resetMatch: () => {
-    const { activeRoom } = get()
-    if (!activeRoom) return
-
     set({
       phase: 'room',
       isLobbyOpen: true,
@@ -448,16 +372,14 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
       inputTimestamps: [],
       streakCount: 0,
       errorShakeKey: 0,
-      activeRoom: {
-        ...activeRoom,
-        players: resetPlayersForRoom(stripBots(activeRoom.players)),
-      },
     })
   },
-
-  setActiveRoomPlayers: (players) => {
-    const { activeRoom } = get()
-    if (!activeRoom) return
-    set({ activeRoom: { ...activeRoom, players } })
-  },
 }))
+
+export const cleanupPvpSocketListeners = () => {
+  const socket = getPvpSocket()
+  if (!socket) return
+  offPvp(pvpSocketClient.events.server.rooms)
+  offPvp(pvpSocketClient.events.server.roomState)
+  offPvp(pvpSocketClient.events.server.error)
+}

@@ -41,6 +41,7 @@ function PvpMatchView() {
   const updateLocalMetrics = usePvpStore((state) => state.updateLocalMetrics)
   const finishLocalPlayer = usePvpStore((state) => state.finishLocalPlayer)
   const currentUser = usePvpStore((state) => state.currentUser)
+  const clockOffsetMs = usePvpStore((state) => state.clockOffsetMs)
 
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const lastEmitRef = useRef(0)
@@ -111,7 +112,8 @@ function PvpMatchView() {
     const now = Date.now()
     if (now - lastEmitRef.current < pvpConfig.network.progressThrottleMs) return
 
-    const elapsedSec = Math.max(pvpConfig.network.minElapsedSec, (now - match.startedAt) / 1000)
+    const syncedNow = now + clockOffsetMs
+    const elapsedSec = Math.max(pvpConfig.network.minElapsedSec, (syncedNow - match.startedAt) / 1000)
     const wordsTyped = input.trim().split(/\s+/).filter(Boolean).length
     const minutesRatio = typingMetricsConfig.time.msPerMinute / typingMetricsConfig.time.msPerSecond
     const wpm = Math.round((wordsTyped / elapsedSec) * minutesRatio)
@@ -123,7 +125,7 @@ function PvpMatchView() {
 
     updateLocalMetrics({ progress, wpm, accuracy, errors, timeSec: elapsedSec })
     lastEmitRef.current = now
-  }, [input, match.stage, match.startedAt, match.text, match.text.length, localPlayer, updateLocalMetrics, isLocalFinished])
+  }, [input, match.stage, match.startedAt, match.text, match.text.length, localPlayer, updateLocalMetrics, isLocalFinished, clockOffsetMs])
 
   useEffect(() => {
     if (match.stage !== 'typing' || !match.text || isLocalFinished) return

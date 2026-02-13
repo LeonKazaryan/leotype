@@ -181,6 +181,11 @@ const translations = {
       errors: {
         ROOMS_LOAD_FAILED: 'Не удалось загрузить комнаты',
         ROOM_NOT_FOUND: 'Комната не найдена',
+        ROOM_FULL: 'Комната заполнена',
+        NOT_HOST: 'Только хост может менять настройки',
+        MATCH_IN_PROGRESS: 'Матч уже идет',
+        NOT_IN_ROOM: 'Вы не в комнате',
+        UNAUTHORIZED: 'Нужна авторизация',
         TEXT_GENERATION_FAILED: 'Не удалось подготовить слова',
         UNKNOWN_ERROR: 'Ошибка',
       },
@@ -468,6 +473,11 @@ const translations = {
       errors: {
         ROOMS_LOAD_FAILED: 'Failed to load rooms',
         ROOM_NOT_FOUND: 'Room not found',
+        ROOM_FULL: 'Room is full',
+        NOT_HOST: 'Only host can change settings',
+        MATCH_IN_PROGRESS: 'Match already in progress',
+        NOT_IN_ROOM: 'You are not in a room',
+        UNAUTHORIZED: 'Authorization required',
         TEXT_GENERATION_FAILED: 'Failed to prepare words',
         UNKNOWN_ERROR: 'Something went wrong',
       },
