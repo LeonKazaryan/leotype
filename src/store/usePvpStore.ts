@@ -164,6 +164,7 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
       const currentUserId = get().currentUser?.id ?? null
       const mappedRoom = mapServerRoom(room, currentUserId)
       const mappedStage = mapServerStage(room.match.stage, room.match.text)
+      const previousMatch = get().match
       const match: PvpMatchState = {
         stage: mappedStage,
         countdown: get().match.countdown,
@@ -179,6 +180,11 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
           ? 'match'
           : 'room'
 
+      const shouldResetInput = room.match.stage === 'lobby'
+        || room.match.stage === 'syncing'
+        || room.match.text !== previousMatch.text
+        || room.match.startAt !== previousMatch.startedAt
+
       set({
         activeRoom: mappedRoom,
         match,
@@ -186,6 +192,14 @@ export const usePvpStore = create<PvpStore>((set, get) => ({
         isLobbyOpen: nextPhase !== 'match',
         roomsError: null,
         clockOffsetMs: typeof serverTime === 'number' ? serverTime - Date.now() : get().clockOffsetMs,
+        ...(shouldResetInput
+          ? {
+            input: '',
+            inputTimestamps: [],
+            streakCount: 0,
+            errorShakeKey: 0,
+          }
+          : {}),
       })
     })
 
