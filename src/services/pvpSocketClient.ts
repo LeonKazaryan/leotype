@@ -42,15 +42,15 @@ export const emitPvp = <T>(event: string, payload?: T) => {
   socket.emit(event, payload)
 }
 
-export const onPvp = (event: string, handler: (...args: unknown[]) => void) => {
+export const onPvp = <T>(event: string, handler: (payload: T) => void) => {
   if (!socket) return
-  socket.on(event, handler)
+  socket.on(event, handler as (...args: unknown[]) => void)
 }
 
-export const offPvp = (event: string, handler?: (...args: unknown[]) => void) => {
+export const offPvp = <T>(event: string, handler?: (payload: T) => void) => {
   if (!socket) return
   if (handler) {
-    socket.off(event, handler)
+    socket.off(event, handler as (...args: unknown[]) => void)
   } else {
     socket.off(event)
   }

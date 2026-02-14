@@ -1,4 +1,4 @@
-import type { PvpDifficulty, PvpPrivacy, PvpRoomSettings, PvpTheme } from '../types/pvp'
+import type { PvpDifficulty, PvpPrivacy, PvpPublicRoom, PvpRoomSettings, PvpTheme } from '../types/pvp'
 
 const roomCodeAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
@@ -97,7 +97,7 @@ export const pvpConfig = {
         difficulty: 'easy',
         pingMs: 36,
       },
-    ],
+    ] satisfies PvpPublicRoom[],
     botProfiles: [
       { wpm: 55, accuracy: 96 },
       { wpm: 72, accuracy: 94 },

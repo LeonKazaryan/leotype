@@ -19,9 +19,12 @@ export const usePvpMatchEngine = () => {
       return
     }
 
+    const startedAt = match.startedAt
+    if (!startedAt) return
+
     const updateCountdown = () => {
       const now = Date.now() + clockOffsetMs
-      const remainingMs = Math.max(match.startedAt - now, 0)
+      const remainingMs = Math.max(startedAt - now, 0)
       const remainingSec = Math.ceil(remainingMs / pvpConfig.network.countdownTickMs)
       setCountdown(remainingSec)
     }
