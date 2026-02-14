@@ -24,6 +24,21 @@ const emitError = (socket: Socket, code: PvpErrorCode) => {
   socket.emit(pvpSocketEvents.server.error, { code })
 }
 
+const clampStat = (value: number, maxValue: number) => {
+  if (!Number.isFinite(value) || !Number.isFinite(maxValue)) return 0
+  return Math.max(0, Math.min(Math.floor(value), Math.floor(maxValue)))
+}
+
+const clampPlayerStats = (room: PvpRoom, stats: PvpPlayerStats & { progress?: number }) => {
+  const maxWords = room.settings.wordCount
+  const maxChars = room.match.text.length
+  return {
+    ...stats,
+    words: clampStat(stats.words, maxWords),
+    characters: clampStat(stats.characters, maxChars),
+  }
+}
+
 const clearRoomTimers = (roomId: string) => {
   const startTimer = startTimers.get(roomId)
   if (startTimer) {
@@ -222,7 +237,13 @@ export const registerPvpSocket = (io: Server) => {
         characters: typeof payload?.characters === 'number' ? payload.characters : 0,
       }
 
-      const room = manager.updateProgress(userId, stats)
+      const roomSnapshot = manager.getRoomForPlayer(userId)
+      if (!roomSnapshot) return
+      const playerSnapshot = roomSnapshot.players.find((player) => player.id === userId)
+      if (!playerSnapshot || playerSnapshot.status === 'finished') return
+
+      const clampedStats = clampPlayerStats(roomSnapshot, stats)
+      const room = manager.updateProgress(userId, clampedStats)
       if (room) {
         emitRoomState(io, room)
       }
@@ -238,13 +259,19 @@ export const registerPvpSocket = (io: Server) => {
         characters: typeof payload?.characters === 'number' ? payload.characters : 0,
       }
 
-      const room = manager.finishPlayer(userId, stats)
+      const roomSnapshot = manager.getRoomForPlayer(userId)
+      if (!roomSnapshot) return
+      const playerSnapshot = roomSnapshot.players.find((player) => player.id === userId)
+      if (!playerSnapshot || playerSnapshot.status === 'finished') return
+
+      const clampedStats = clampPlayerStats(roomSnapshot, stats)
+      const room = manager.finishPlayer(userId, clampedStats)
       if (!room) return
 
       emitRoomState(io, room)
 
-      const words = Math.max(0, Math.floor(stats.words))
-      const characters = Math.max(0, Math.floor(stats.characters))
+      const words = Math.max(0, Math.floor(clampedStats.words))
+      const characters = Math.max(0, Math.floor(clampedStats.characters))
       if (words > 0 || characters > 0) {
         prisma.user.update({
           where: { id: userId },
