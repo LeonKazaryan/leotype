@@ -3,6 +3,9 @@ import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
 import { useI18n } from '../hooks/useI18n'
+import { settingsOptions } from '../config/settings'
+import { supportedLanguages } from '../config/language'
+import HeaderSettingsMenu from './header/HeaderSettingsMenu'
 
 type HeaderProps = {
   onOpenRegister: () => void
@@ -13,8 +16,10 @@ type HeaderProps = {
 }
 
 function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
-  const theme = useTypingStore((state) => state.settings.theme)
-  const themeClasses = getThemeClasses(theme)
+  const settings = useTypingStore((state) => state.settings)
+  const setTheme = useTypingStore((state) => state.setTheme)
+  const setLanguage = useTypingStore((state) => state.setLanguage)
+  const themeClasses = getThemeClasses(settings.theme)
   const i18n = useI18n()
   const [hoverMenu, setHoverMenu] = useState(false)
   const [authHover, setAuthHover] = useState(false)
@@ -42,7 +47,23 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
       transition={{ duration: 0.5 }}
       className="text-center relative overflow-visible z-20 pt-6 md:pt-10"
     >
-      <div className="fixed right-6 top-6 z-50 pointer-events-auto">
+      <div className="fixed right-6 top-6 z-50 flex items-center gap-3">
+        <HeaderSettingsMenu
+          themeClasses={themeClasses}
+          theme={settings.theme}
+          language={settings.language}
+          themes={settingsOptions.themes}
+          languages={supportedLanguages}
+          labels={{
+            theme: i18n.theme.label,
+            language: i18n.language.label,
+            themeOptions: i18n.theme.options,
+            languageOptions: i18n.language.options,
+          }}
+          onThemeChange={setTheme}
+          onLanguageChange={setLanguage}
+        />
+
         {user ? (
           <div
             className="relative overflow-visible"
@@ -60,16 +81,14 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
             {hoverMenu && (
               <div className="absolute right-0 top-full mt-2 z-50">
                 <div className="absolute -top-2 right-0 h-3 w-full" />
-                <div
-                  className={`min-w-[180px] rounded-xl ${themeClasses.card} border ${themeClasses.border} shadow-2xl ring-1 ring-black/20`}
-                >
+                <div className={`min-w-[180px] rounded-xl ${themeClasses.card} shadow-2xl ring-1 ring-black/20`}>
                   <button
-                  type="button"
-                  onClick={onLogout}
-                  className={`w-full text-left px-4 py-3 text-sm ${themeClasses.secondary} hover:${themeClasses.primary} transition-colors`}
-                >
-                  {i18n.header.logout}
-                </button>
+                    type="button"
+                    onClick={onLogout}
+                    className={`w-full text-left px-4 py-3 text-sm ${themeClasses.primary} opacity-70 hover:opacity-100 transition-opacity`}
+                  >
+                    {i18n.header.logout}
+                  </button>
                 </div>
               </div>
             )}
@@ -155,7 +174,7 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className={`text-xl ${themeClasses.secondary}`}
+        className={`text-xl ${themeClasses.secondary} opacity-70`}
       >
         {i18n.header.tagline}
       </motion.p>

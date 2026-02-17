@@ -2,6 +2,8 @@ import { motion } from 'framer-motion'
 import AnimatedNumber from '../AnimatedNumber'
 import { resultsViewConfig } from '../../config/resultsView'
 import { useI18n } from '../../hooks/useI18n'
+import { Zap } from 'lucide-react'
+import { iconSize, iconStroke } from '../../config/menu'
 
 interface ResultsHeroProps {
   wpm: number
@@ -14,7 +16,7 @@ interface ResultsHeroProps {
   }
 }
 
-const { animation, icons, format } = resultsViewConfig
+const { animation, format } = resultsViewConfig
 
 function ResultsHero({ wpm, accuracy, isPerfect, themeClasses }: ResultsHeroProps) {
   const i18n = useI18n()
@@ -26,7 +28,7 @@ function ResultsHero({ wpm, accuracy, isPerfect, themeClasses }: ResultsHeroProp
         transition={{ duration: animation.containerDuration, ease: animation.ease, delay: animation.wpmDelay }}
         className="flex items-end justify-center gap-3"
       >
-        <span className={`text-2xl ${themeClasses.accent}`}>{icons.wpm}</span>
+        <Zap className={themeClasses.accent} size={iconSize} strokeWidth={iconStroke} />
         <span className={`text-6xl md:text-7xl font-bold ${themeClasses.primary} glow-text`}>
           <AnimatedNumber value={wpm} decimals={format.wpmDecimals} />
         </span>

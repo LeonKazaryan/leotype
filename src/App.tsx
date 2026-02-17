@@ -4,7 +4,6 @@ import TypingTest from './components/TypingTest'
 import Settings from './components/Settings'
 import Stats from './components/Stats'
 import Header from './components/Header'
-import Keyboard from './components/Keyboard'
 import Confetti from './components/Confetti'
 import BackgroundEffects from './components/BackgroundEffects'
 import RegisterModal from './components/RegisterModal'
@@ -115,7 +114,6 @@ function App() {
               ) : (
                 <>
                   <TypingTest />
-                  <Keyboard />
                   <Stats />
                 </>
               )}

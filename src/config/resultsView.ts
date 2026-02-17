@@ -1,10 +1,4 @@
 export const resultsViewConfig = {
-  icons: {
-    wpm: '⚡',
-    runAgain: '↻',
-    settings: '⚙',
-    history: '📊',
-  },
   format: {
     timeDecimals: 1,
     accuracyDecimals: 0,
