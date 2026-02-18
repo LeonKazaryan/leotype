@@ -226,8 +226,7 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
   },
 
   cancelQueue: () => {
-    emitRanked(rankedSocketEvents.client.cancelQueue)
-    set({ phase: 'idle', searchStatus: null })
+    get().closeOverlay()
   },
 
   sendProgress: (payload) => {
