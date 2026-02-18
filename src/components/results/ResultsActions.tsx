@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { resultsViewConfig } from '../../config/resultsView'
 import { useI18n } from '../../hooks/useI18n'
+import { History, RotateCcw, Settings } from 'lucide-react'
+import { iconSize, iconStroke } from '../../config/menu'
 
 interface ResultsActionsProps {
   onRunAgain: () => void
@@ -13,7 +15,7 @@ interface ResultsActionsProps {
   }
 }
 
-const { animation, icons } = resultsViewConfig
+const { animation } = resultsViewConfig
 
 function ResultsActions({ onRunAgain, onSettings, themeClasses }: ResultsActionsProps) {
   const i18n = useI18n()
@@ -32,7 +34,7 @@ function ResultsActions({ onRunAgain, onSettings, themeClasses }: ResultsActions
         type="button"
       >
         <span className="inline-flex items-center gap-3">
-          <span className={themeClasses.accent}>{icons.runAgain}</span>
+          <RotateCcw className={themeClasses.accent} size={iconSize} strokeWidth={iconStroke} />
           {i18n.results.runAgain}
         </span>
       </motion.button>
@@ -46,7 +48,7 @@ function ResultsActions({ onRunAgain, onSettings, themeClasses }: ResultsActions
           type="button"
         >
           <span className="inline-flex items-center gap-2">
-            <span className={themeClasses.accent}>{icons.settings}</span>
+            <Settings className={themeClasses.accent} size={iconSize} strokeWidth={iconStroke} />
             {i18n.results.settings}
           </span>
         </motion.button>
@@ -57,7 +59,7 @@ function ResultsActions({ onRunAgain, onSettings, themeClasses }: ResultsActions
           title={`${i18n.results.history}${i18n.results.historySoonSuffix}`}
         >
           <span className="inline-flex items-center gap-2">
-            <span className={themeClasses.accent}>{icons.history}</span>
+            <History className={themeClasses.accent} size={iconSize} strokeWidth={iconStroke} />
             {i18n.results.history}
           </span>
         </button>

@@ -41,7 +41,7 @@ const translations = {
       timeLabel: 'Время (сек)',
       wordsLabel: 'Слов',
       ai: {
-        title: 'Настройки AI',
+        title: 'AI',
         topicLabel: 'Тематика',
         topicPlaceholder: 'Например: программирование, наука, история...',
         topicHint: 'Укажите тему для генерации текста',
@@ -56,8 +56,8 @@ const translations = {
           hard: 'Сложная',
         },
         difficultyHint: 'Выберите уровень сложности текста',
-        hint: '💡 Настройки применяются при нажатии "Новый текст" или "Сброс"',
-        hintMemory: '💡 Настройки применяются при старте Memory',
+        hint: 'Настройки применяются при нажатии "Старт".',
+        hintMemory: 'Настройки применяются при старте Memory.',
       },
       extrasLabel: 'Дополнительно',
       keyboardToggle: {
@@ -72,7 +72,7 @@ const translations = {
       actions: {
         newText: 'Новый текст',
         reset: 'Сброс',
-        generating: '⏳ Генерация...',
+        generating: 'Генерация...',
         start: 'Старт',
         loginToPlay: 'Войти, чтобы играть',
       },
@@ -255,7 +255,7 @@ const translations = {
       submit: {
         register: 'Создать аккаунт',
         login: 'Войти',
-        submitting: '⏳ Обработка...',
+        submitting: 'Обработка...',
       },
       success: {
         register: 'Аккаунт создан. Ты в системе.',
@@ -336,7 +336,7 @@ const translations = {
       timeLabel: 'Time (sec)',
       wordsLabel: 'Words',
       ai: {
-        title: 'AI settings',
+        title: 'AI',
         topicLabel: 'Topic',
         topicPlaceholder: 'e.g. programming, science, history...',
         topicHint: 'Provide a topic for text generation',
@@ -351,8 +351,8 @@ const translations = {
           hard: 'Hard',
         },
         difficultyHint: 'Choose text difficulty',
-        hint: '💡 Settings apply when you click "New text" or "Reset"',
-        hintMemory: '💡 Settings apply when you start Memory',
+        hint: 'Settings apply when you press "Start".',
+        hintMemory: 'Settings apply when you start Memory.',
       },
       extrasLabel: 'Extras',
       keyboardToggle: {
@@ -367,7 +367,7 @@ const translations = {
       actions: {
         newText: 'New text',
         reset: 'Reset',
-        generating: '⏳ Generating...',
+        generating: 'Generating...',
         start: 'Start',
         loginToPlay: 'Log in to play',
       },
@@ -550,7 +550,7 @@ const translations = {
       submit: {
         register: 'Create account',
         login: 'Log in',
-        submitting: '⏳ Processing...',
+        submitting: 'Processing...',
       },
       success: {
         register: 'Account created. You are signed in.',

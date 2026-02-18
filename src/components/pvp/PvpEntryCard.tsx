@@ -4,6 +4,7 @@ import { useTypingStore } from '../../store/useTypingStore'
 import { getThemeClasses } from '../../utils/themes'
 import { useI18n } from '../../hooks/useI18n'
 import { pvpConfig } from '../../config/pvp'
+import { iconSize, iconStroke, menuIcons } from '../../config/menu'
 
 interface PvpEntryCardProps {
   isLocked: boolean
@@ -16,6 +17,7 @@ function PvpEntryCard({ isLocked, onOpen, onRequireAuth, shakeKey }: PvpEntryCar
   const theme = useTypingStore((state) => state.settings.theme)
   const themeClasses = getThemeClasses(theme)
   const i18n = useI18n()
+  const PvpIcon = menuIcons.pvp
   const [isShaking, setShaking] = useState(false)
 
   useEffect(() => {
@@ -47,7 +49,7 @@ function PvpEntryCard({ isLocked, onOpen, onRequireAuth, shakeKey }: PvpEntryCar
       <div className="relative flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">⚡</span>
+            <PvpIcon className={themeClasses.primary} size={iconSize} strokeWidth={iconStroke} />
             <div>
               <p className={`text-lg font-semibold ${themeClasses.primary}`}>{i18n.pvp.card.title}</p>
               <p className={`text-sm ${themeClasses.secondary} opacity-80`}>{i18n.pvp.card.subtitle}</p>
