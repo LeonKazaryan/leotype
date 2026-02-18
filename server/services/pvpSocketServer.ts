@@ -29,11 +29,12 @@ const clampStat = (value: number, maxValue: number) => {
   return Math.max(0, Math.min(Math.floor(value), Math.floor(maxValue)))
 }
 
-const clampPlayerStats = (room: PvpRoom, stats: PvpPlayerStats & { progress?: number }) => {
+const clampPlayerStats = (room: PvpRoom, stats: PvpPlayerStats & { progress?: number }): PvpPlayerStats & { progress: number } => {
   const maxWords = room.settings.wordCount
   const maxChars = room.match.text.length
   return {
     ...stats,
+    progress: Number.isFinite(stats.progress) ? Math.max(0, Math.min(1, stats.progress as number)) : 0,
     words: clampStat(stats.words, maxWords),
     characters: clampStat(stats.characters, maxChars),
   }
