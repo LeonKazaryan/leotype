@@ -222,8 +222,8 @@ const translations = {
       },
     },
     typing: {
-      generatingTitle: 'Генерация текста',
-      generatingHint: 'Пожалуйста, подождите...',
+        generatingTitle: 'AI собирает твой челлендж…',
+        generatingHint: 'Нейросеть подбирает слова и тест.',
       startHint: 'Начните печатать, чтобы начать тест',
     },
     timer: {
@@ -517,8 +517,8 @@ const translations = {
       },
     },
     typing: {
-      generatingTitle: 'Generating text',
-      generatingHint: 'Please wait...',
+        generatingTitle: 'AI is constructing your challenge…',
+        generatingHint: 'Neural engine assembles words and test.',
       startHint: 'Start typing to begin the test',
     },
     timer: {

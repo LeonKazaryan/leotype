@@ -32,4 +32,51 @@
         pointer-events: none;
         mix-blend-mode: soft-light;
     }
+
+    .caret-blink {
+        animation: caret-blink 1s steps(2, end) infinite;
+    }
+
+.glitch-shift {
+        animation: glitch-x 1.6s infinite steps(2), glitch-y 2s infinite steps(2);
+}
+
+    .letter-jitter {
+        animation: letter-jitter 0.9s ease-in-out infinite alternate;
+    }
+}
+
+@keyframes caret-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+@keyframes glitch-x {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-0.6px); }
+    40% { transform: translateX(0.8px); }
+    60% { transform: translateX(-0.8px); }
+    80% { transform: translateX(0.5px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes glitch-y {
+    0% { transform: translateY(0); }
+    25% { transform: translateY(0.5px); }
+    50% { transform: translateY(-0.7px); }
+    75% { transform: translateY(0.5px); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes letter-jitter {
+    from { transform: translateY(0) rotate(0deg); }
+    to { transform: translateY(-1px) rotate(0.5deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .caret-blink,
+    .glitch-shift,
+    .letter-jitter {
+        animation: none !important;
+    }
 }

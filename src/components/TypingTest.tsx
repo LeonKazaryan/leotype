@@ -6,6 +6,7 @@ import { areCharsEquivalent } from '../utils/charCompare'
 import TextDisplay from './TextDisplay'
 import Timer from './Timer'
 import { useI18n } from '../hooks/useI18n'
+import NeuralTypingLoader from './loaders/NeuralTypingLoader'
 
 function TypingTest() {
   const text = useTypingStore((state) => state.text)
@@ -100,7 +101,29 @@ function TypingTest() {
     }
     return 'pending'
   }
-  
+
+  if (testState.isGeneratingAI) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.15 }}
+        className={`rounded-2xl p-8 ${themeClasses.card} border-2 ${themeClasses.border} shadow-2xl`}
+      >
+        <NeuralTypingLoader
+          title={i18n.typing.generatingTitle}
+          hint={i18n.typing.generatingHint}
+          difficulty={settings.aiDifficulty}
+          theme={settings.theme}
+          themeClasses={themeClasses}
+          topic={settings.aiTopic}
+          size="full"
+          showReadyOnExit
+        />
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -120,9 +143,9 @@ function TypingTest() {
           value={testState.userInput}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
-          disabled={testState.isGeneratingAI}
-          className="absolute inset-0 opacity-0 cursor-none disabled:cursor-not-allowed"
-          autoFocus={!testState.isGeneratingAI}
+          disabled={false}
+          className="absolute inset-0 opacity-0 cursor-none"
+          autoFocus
           spellCheck={false}
           autoComplete="off"
           autoCorrect="off"
@@ -133,31 +156,21 @@ function TypingTest() {
       <AnimatePresence>
         {testState.isGeneratingAI && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={`absolute inset-0 flex flex-col items-center justify-center ${themeClasses.overlay} backdrop-blur-sm rounded-2xl z-20`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-transparent rounded-2xl z-20 px-4"
           >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className={`w-12 h-12 border-4 border-t-4 rounded-full ${themeClasses.accent} border-opacity-50 mb-4`}
+            <NeuralTypingLoader
+              title={i18n.typing.generatingTitle}
+              hint={i18n.typing.generatingHint}
+              difficulty={settings.aiDifficulty}
+              theme={settings.theme}
+              themeClasses={themeClasses}
+              topic={settings.aiTopic}
+              size="full"
+              showReadyOnExit
             />
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={`text-xl font-semibold ${themeClasses.primary} mb-2`}
-            >
-              {i18n.typing.generatingTitle}
-            </motion.p>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className={`text-sm ${themeClasses.secondary} opacity-70`}
-            >
-              {i18n.typing.generatingHint}
-            </motion.p>
           </motion.div>
         )}
         {!testState.isActive && !testState.isFinished && !testState.isGeneratingAI && (

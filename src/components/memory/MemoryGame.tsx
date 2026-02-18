@@ -6,6 +6,7 @@ import { useMemoryEngine } from '../../hooks/useMemoryEngine'
 import { memoryConfig } from '../../config/memory'
 import { getThemeClasses } from '../../utils/themes'
 import { useI18n } from '../../hooks/useI18n'
+import NeuralTypingLoader from '../loaders/NeuralTypingLoader'
 import {
   formatMemorySeconds,
   getMemorizeProgress,
@@ -161,15 +162,18 @@ function MemoryGame() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: memoryConfig.ui.animation.overlayFadeDuration }}
-            className={`absolute inset-0 flex flex-col items-center justify-center ${themeClasses.overlay} backdrop-blur-md opacity-90`}
+            className="absolute inset-0 flex items-center justify-center bg-transparent px-4"
           >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: memoryConfig.ui.animation.spinnerRotationDuration, repeat: Infinity, ease: 'linear' }}
-              className={`w-12 h-12 border-4 border-t-4 rounded-full ${themeClasses.accent} border-opacity-50 mb-4`}
+            <NeuralTypingLoader
+              title={i18n.memory.loadingTitle}
+              hint={i18n.memory.loadingHint}
+              difficulty={settings.aiDifficulty}
+              theme={settings.theme}
+              themeClasses={themeClasses}
+              topic={settings.aiTopic}
+              size="full"
+              showReadyOnExit
             />
-            <p className={`text-lg font-semibold ${themeClasses.primary}`}>{i18n.memory.loadingTitle}</p>
-            <p className={`text-xs ${themeClasses.secondary} opacity-70`}>{i18n.memory.loadingHint}</p>
           </motion.div>
         )}
       </AnimatePresence>
