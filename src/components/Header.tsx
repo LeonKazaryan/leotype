@@ -48,22 +48,6 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
       className="text-center relative overflow-visible z-20 pt-6 md:pt-10"
     >
       <div className="fixed right-6 top-6 z-50 flex items-center gap-3">
-        <HeaderSettingsMenu
-          themeClasses={themeClasses}
-          theme={settings.theme}
-          language={settings.language}
-          themes={settingsOptions.themes}
-          languages={supportedLanguages}
-          labels={{
-            theme: i18n.theme.label,
-            language: i18n.language.label,
-            themeOptions: i18n.theme.options,
-            languageOptions: i18n.language.options,
-          }}
-          onThemeChange={setTheme}
-          onLanguageChange={setLanguage}
-        />
-
         {user ? (
           <div
             className="relative overflow-visible"
@@ -150,6 +134,21 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
             />
           </motion.button>
         )}
+        <HeaderSettingsMenu
+          themeClasses={themeClasses}
+          theme={settings.theme}
+          language={settings.language}
+          themes={settingsOptions.themes}
+          languages={supportedLanguages}
+          labels={{
+            theme: i18n.theme.label,
+            language: i18n.language.label,
+            themeOptions: i18n.theme.options,
+            languageOptions: i18n.language.options,
+          }}
+          onThemeChange={setTheme}
+          onLanguageChange={setLanguage}
+        />
       </div>
 
       <motion.h1

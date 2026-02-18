@@ -49,14 +49,14 @@ function AiToggle({ label, placeholder, topic, onTopicChange, themeClasses }: Ai
             }
             setIsOpen(true)
           }}
-          className={`relative h-6 w-11 rounded-full border transition-colors ${
+          className={`relative h-5 w-10 rounded-full border transition-colors ${
             isActive
               ? `${themeClasses.accent} ${themeClasses.accentBorder} shadow-[0_0_12px_currentColor]`
               : `${themeClasses.secondary} ${themeClasses.border} opacity-70`
           }`}
         >
           <span
-            className={`absolute top-0.5 h-5 w-5 rounded-full transition-transform ${
+            className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full transition-transform ${
               isActive ? `${themeClasses.accentBg} translate-x-5` : `${themeClasses.card} translate-x-0`
             }`}
           />
