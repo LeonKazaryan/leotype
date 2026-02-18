@@ -12,6 +12,7 @@ import MemoryGame from './components/memory/MemoryGame'
 import PvpAuthModal from './components/pvp/PvpAuthModal'
 import PvpOverlay from './components/pvp/PvpOverlay'
 import RankedOverlay from './components/ranked/RankedOverlay'
+import RankedProfileModal from './components/ranked/RankedProfileModal'
 import { AuthUser, clearStoredAuth, getStoredUser } from './utils/auth'
 import { getThemeClasses } from './utils/themes'
 import { usePvpStore } from './store/usePvpStore'
@@ -28,15 +29,19 @@ function App() {
   const [isRegisterOpen, setRegisterOpen] = useState(false)
   const [registerInitialMode, setRegisterInitialMode] = useState<'register' | 'login' | undefined>(undefined)
   const [isPvpAuthOpen, setPvpAuthOpen] = useState(false)
-  const [pvpShakeKey, setPvpShakeKey] = useState(0)
+  const [isProfileOpen, setProfileOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
   const openPvpLobby = usePvpStore((state) => state.openLobby)
   const closePvpLobby = usePvpStore((state) => state.closeLobby)
   const disconnectPvpSocket = usePvpStore((state) => state.disconnectSocket)
   const openRankedOverlay = useRankedStore((state) => state.openOverlay)
-  const closeRankedOverlay = useRankedStore((state) => state.closeOverlay)
   const loadRankedProfile = useRankedStore((state) => state.loadProfile)
   const joinRankedQueue = useRankedStore((state) => state.joinQueue)
+  const rankedProfile = useRankedStore((state) => state.profile)
+  const profileStatus = useRankedStore((state) => state.profileStatus)
+  const profileError = useRankedStore((state) => state.profileError)
+  const profileDelta = useRankedStore((state) => state.profileDelta)
+  const lastResultDelta = useRankedStore((state) => state.lastResultDelta)
 
   useEffect(() => {
     document.body.className = themeClasses.body
@@ -99,6 +104,19 @@ function App() {
             goToSettings()
             closePvpLobby()
             disconnectPvpSocket()
+            setProfileOpen(false)
+            useRankedStore.setState({
+              profile: null,
+              profileStatus: 'idle',
+              profileError: null,
+              profileDelta: undefined,
+              lastResultDelta: undefined,
+            })
+          }}
+          onOpenProfile={() => {
+            if (!currentUser) return
+            loadRankedProfile()
+            setProfileOpen(true)
           }}
         />
         <div className="mt-8 space-y-6">
@@ -119,10 +137,8 @@ function App() {
                 joinRankedQueue({ language: useTypingStore.getState().settings.language })
               }}
               onRequirePvpAuth={() => {
-                setPvpShakeKey((prev) => prev + 1)
                 setPvpAuthOpen(true)
               }}
-              pvpShakeKey={pvpShakeKey}
             />
           ) : (
             <>
@@ -140,6 +156,33 @@ function App() {
       </div>
       <PvpOverlay onCloseLobby={closePvpLobby} />
       <RankedOverlay />
+      <RankedProfileModal
+        open={isProfileOpen}
+        onClose={() => setProfileOpen(false)}
+        onRetry={loadRankedProfile}
+        onLogout={() => {
+          clearStoredAuth()
+          setCurrentUser(null)
+          setProfileOpen(false)
+          closePvpLobby()
+          disconnectPvpSocket()
+          goToSettings()
+          useRankedStore.setState({
+            profile: null,
+            profileStatus: 'idle',
+            profileError: null,
+            profileDelta: undefined,
+            lastResultDelta: undefined,
+          })
+        }}
+        profile={rankedProfile}
+        status={profileStatus}
+        error={profileError}
+        profileDelta={profileDelta}
+        lastResultDelta={lastResultDelta}
+        themeClasses={themeClasses}
+        user={currentUser}
+      />
     </div>
   )
 }

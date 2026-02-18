@@ -3,13 +3,10 @@ import { motion } from 'framer-motion'
 import { useTypingStore } from '../../store/useTypingStore'
 import { useRankedStore } from '../../store/useRankedStore'
 import { getThemeClasses } from '../../utils/themes'
-import { rankedConfig } from '../../config/ranked'
 import PvpTextDisplay from '../pvp/PvpTextDisplay'
 import PvpStatsPanel from '../pvp/PvpStatsPanel'
 import { getProgress } from '../../utils/pvp'
 import { calculateStats } from '../../utils/stats'
-
-const isPrintableKey = (key: string) => key.length === 1
 
 function RankedMatchView() {
   const theme = useTypingStore((state) => state.settings.theme)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTypingStore } from '../store/useTypingStore'
 import { getThemeClasses } from '../utils/themes'
@@ -6,6 +6,8 @@ import { useI18n } from '../hooks/useI18n'
 import { settingsOptions } from '../config/settings'
 import { supportedLanguages } from '../config/language'
 import HeaderSettingsMenu from './header/HeaderSettingsMenu'
+import { useRankedStore } from '../store/useRankedStore'
+import { rankedConfig } from '../config/ranked'
 
 type HeaderProps = {
   onOpenRegister: () => void
@@ -13,17 +15,21 @@ type HeaderProps = {
     username: string
   } | null
   onLogout: () => void
+  onOpenProfile: () => void
 }
 
-function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
+function Header({ onOpenRegister, user, onLogout, onOpenProfile }: HeaderProps) {
   const settings = useTypingStore((state) => state.settings)
   const setTheme = useTypingStore((state) => state.setTheme)
   const setLanguage = useTypingStore((state) => state.setLanguage)
   const themeClasses = getThemeClasses(settings.theme)
   const i18n = useI18n()
-  const [hoverMenu, setHoverMenu] = useState(false)
   const [authHover, setAuthHover] = useState(false)
   const [typedText, setTypedText] = useState('')
+  const rankedProfile = useRankedStore((state) => state.profile)
+  const profileStatus = useRankedStore((state) => state.profileStatus)
+
+  const ratingValue = useMemo(() => rankedProfile?.rating ?? rankedConfig.rating.start, [rankedProfile])
 
   useEffect(() => {
     const word = i18n.header.login
@@ -49,34 +55,55 @@ function Header({ onOpenRegister, user, onLogout }: HeaderProps) {
     >
       <div className="fixed right-6 top-6 z-50 flex items-center gap-3">
         {user ? (
-          <div
-            className="relative overflow-visible"
-            onMouseEnter={() => setHoverMenu(true)}
-            onMouseLeave={() => setHoverMenu(false)}
-            onPointerEnter={() => setHoverMenu(true)}
-            onPointerLeave={() => setHoverMenu(false)}
-          >
+          <>
+            <motion.button
+              type="button"
+              whileHover={{ y: -2, boxShadow: '0 10px 40px rgba(14,165,233,0.35)' }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onOpenProfile}
+              className={`relative px-3 py-1.5 rounded-full text-sm font-semibold border ${themeClasses.border} ${themeClasses.card} ${themeClasses.primary} overflow-hidden`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-flex items-center gap-1">
+                  <motion.span
+                    initial={{ opacity: 0.8 }}
+                    animate={{ opacity: 1 }}
+                    className="text-xs px-2 py-0.5 rounded-full border border-white/10 bg-white/5"
+                  >
+                    {i18n.rankedProfile.userChip}
+                  </motion.span>
+                  {user.username}
+                </span>
+              </span>
+            </motion.button>
+
+            <motion.button
+              type="button"
+              layoutId="profile-rating"
+              whileHover={{ y: -2, boxShadow: '0 10px 40px rgba(14,165,233,0.35)' }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onOpenProfile}
+              className={`relative px-3 py-1.5 rounded-full text-sm font-semibold border ${themeClasses.border} ${themeClasses.card} text-primary-300 overflow-hidden`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-transparent to-primary-500/15 pointer-events-none" />
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-xs uppercase tracking-wide opacity-80">
+                  {i18n.rankedProfile.rating}
+                </span>
+                <span className="text-base font-bold">
+                  {profileStatus === 'loading' ? '…' : ratingValue}
+                </span>
+              </span>
+            </motion.button>
+
             <button
               type="button"
-              className={`px-3 py-1.5 rounded-full text-sm font-semibold ${themeClasses.primary} border ${themeClasses.border} bg-transparent transition-colors`}
+              onClick={onLogout}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${themeClasses.border} ${themeClasses.secondary} hover:${themeClasses.primary}`}
             >
-              {user.username}
+              {i18n.header.logout}
             </button>
-            {hoverMenu && (
-              <div className="absolute right-0 top-full mt-2 z-50">
-                <div className="absolute -top-2 right-0 h-3 w-full" />
-                <div className={`min-w-[180px] rounded-xl ${themeClasses.card} shadow-2xl ring-1 ring-black/20`}>
-                  <button
-                    type="button"
-                    onClick={onLogout}
-                    className={`w-full text-left px-4 py-3 text-sm ${themeClasses.primary} opacity-70 hover:opacity-100 transition-opacity`}
-                  >
-                    {i18n.header.logout}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          </>
         ) : (
           <motion.button
             type="button"

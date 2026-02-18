@@ -10,6 +10,11 @@ type RankedStore = {
   overlayOpen: boolean
   phase: RankedPhase
   profile: RankedProfile | null
+  profileStatus: 'idle' | 'loading' | 'ready' | 'error'
+  profileError: string | null
+  profileUpdatedAt?: number
+  profileDelta?: number
+  lastResultDelta?: number
   searchStatus: { range: number; elapsedMs: number } | null
   opponent: RankedOpponent | null
   match: RankedMatchState
@@ -50,6 +55,11 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
   userId: null,
   phase: 'idle',
   profile: null,
+  profileStatus: 'idle',
+  profileError: null,
+  profileUpdatedAt: undefined,
+  profileDelta: undefined,
+  lastResultDelta: undefined,
   searchStatus: null,
   opponent: null,
   match: defaultMatch,
@@ -146,7 +156,7 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
         const startAt = current.startAt
         const totalMs = opponent.expectedTimeSec * 1000
         const simStart = performance.now()
-        const loop = (tickStart: number) => {
+        const loop = () => {
           const elapsed = Math.max(0, performance.now() - simStart + Math.max(0, Date.now() - startAt))
           const target = Math.min(1, elapsed / totalMs)
           set((state) => {
@@ -177,7 +187,9 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
         phase: 'result',
         result: payload,
         match: { ...get().match, stage: 'finished' },
+        lastResultDelta: payload.delta,
       })
+      void get().loadProfile()
     })
 
     onRanked(rankedSocketEvents.server.error, () => {
@@ -207,13 +219,29 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
   },
 
   loadProfile: async () => {
+    const prev = get().profile
+    set({ profileStatus: 'loading', profileError: null })
     try {
-      const res = await fetch('/api/ranked/profile', { headers: { Authorization: `Bearer ${localStorage.getItem('leotype_token')}` } })
-      if (!res.ok) return
+      const res = await fetch('/api/ranked/profile', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('leotype_token')}` },
+      })
+      if (!res.ok) {
+        const message = typeof res.statusText === 'string' && res.statusText.length > 0 ? res.statusText : 'failed'
+        set({ profileStatus: 'error', profileError: message })
+        return
+      }
       const data = (await res.json()) as RankedProfile
-      set({ profile: data })
+      const delta = typeof prev?.rating === 'number' ? data.rating - prev.rating : undefined
+      set({
+        profile: data,
+        profileStatus: 'ready',
+        profileError: null,
+        profileUpdatedAt: Date.now(),
+        profileDelta: delta,
+      })
     } catch (err) {
       console.error('ranked profile load failed', err)
+      set({ profileStatus: 'error', profileError: 'request_failed' })
     }
   },
 

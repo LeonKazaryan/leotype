@@ -7,6 +7,7 @@ import { useI18n } from '../hooks/useI18n'
 import RankedBanner from './settings/RankedBanner'
 import { useRankedStore } from '../store/useRankedStore'
 import MainMenuPanel from './settings/MainMenuPanel'
+import { rankedConfig } from '../config/ranked'
 
 interface SettingsProps {
   isAuthenticated: boolean
@@ -14,10 +15,9 @@ interface SettingsProps {
   onOpenPvp: () => void
   onOpenRanked: () => void
   onRequirePvpAuth: () => void
-  pvpShakeKey: number
 }
 
-function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onOpenRanked, onRequirePvpAuth, pvpShakeKey }: SettingsProps) {
+function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onOpenRanked, onRequirePvpAuth }: SettingsProps) {
   const settings = useTypingStore((state) => state.settings)
   const setMode = useTypingStore((state) => state.setMode)
   const setTime = useTypingStore((state) => state.setTime)
@@ -80,7 +80,7 @@ function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onOpenRanked, onR
             onOpenRanked()
           }}
           onRequireAuth={onRequirePvpAuth}
-          rating={rankedProfile?.rating ?? 1000}
+          rating={rankedProfile?.rating ?? rankedConfig.rating.start}
         />
 
         <MainMenuPanel
