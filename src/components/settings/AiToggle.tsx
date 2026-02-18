@@ -1,34 +1,19 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
 import type { ThemeClasses } from '../../utils/themes'
 import { iconSize, iconStroke, menuIcons } from '../../config/menu'
 
 interface AiToggleProps {
   label: string
   placeholder: string
+  statusOn: string
+  statusOff: string
   topic: string
   onTopicChange: (topic: string) => void
   themeClasses: ThemeClasses
 }
 
-function AiToggle({ label, placeholder, topic, onTopicChange, themeClasses }: AiToggleProps) {
-  const [isOpen, setIsOpen] = useState(Boolean(topic.trim()))
-  const inputRef = useRef<HTMLInputElement | null>(null)
+function AiToggle({ label, placeholder, statusOn, statusOff, topic, onTopicChange, themeClasses }: AiToggleProps) {
   const AiIcon = menuIcons.ai
   const hasTopic = topic.trim().length > 0
-  const isActive = isOpen || hasTopic
-
-  useEffect(() => {
-    if (hasTopic) {
-      setIsOpen(true)
-    }
-  }, [hasTopic])
-
-  useEffect(() => {
-    if (isOpen) {
-      window.setTimeout(() => inputRef.current?.focus(), 0)
-    }
-  }, [isOpen])
 
   return (
     <div className="space-y-3">
@@ -37,56 +22,28 @@ function AiToggle({ label, placeholder, topic, onTopicChange, themeClasses }: Ai
           <AiIcon className={themeClasses.secondary} size={iconSize} strokeWidth={iconStroke} />
           <span className={`text-xs uppercase tracking-[0.2em] ${themeClasses.secondary} opacity-60`}>{label}</span>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={isActive}
-          onClick={() => {
-            if (isActive) {
-              onTopicChange('')
-              setIsOpen(false)
-              return
-            }
-            setIsOpen(true)
-          }}
-          className={`relative h-5 w-10 rounded-full border transition-colors ${
-            isActive
-              ? `${themeClasses.accent} ${themeClasses.accentBorder} shadow-[0_0_12px_currentColor]`
-              : `${themeClasses.secondary} ${themeClasses.border} opacity-70`
+        <span
+          className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${
+            hasTopic
+              ? `${themeClasses.accent} ${themeClasses.accentBorder} shadow-[0_0_10px_currentColor]`
+              : `${themeClasses.secondary} ${themeClasses.border} opacity-60`
           }`}
         >
-          <span
-            className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full transition-transform ${
-              isActive ? `${themeClasses.accentBg} translate-x-5` : `${themeClasses.card} translate-x-0`
-            }`}
-          />
-        </button>
+          {hasTopic ? statusOn : statusOff}
+        </span>
       </div>
 
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden"
-          >
-            <div className="pt-2">
-              <input
-                ref={inputRef}
-                type="text"
-                value={topic}
-                onChange={(event) => onTopicChange(event.target.value)}
-                placeholder={placeholder}
-                className={`w-full rounded-xl border px-3 py-2 text-sm ${
-                  hasTopic ? `${themeClasses.accentBorder} ring-1 ${themeClasses.accentRing}` : themeClasses.border
-                } ${themeClasses.secondary} bg-transparent focus:outline-none focus:${themeClasses.accent} transition-all placeholder:opacity-50`}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="pt-1">
+        <input
+          type="text"
+          value={topic}
+          onChange={(event) => onTopicChange(event.target.value)}
+          placeholder={placeholder}
+          className={`w-full rounded-xl border px-3 py-2 text-sm ${
+            hasTopic ? `${themeClasses.accentBorder} ring-1 ${themeClasses.accentRing}` : themeClasses.border
+          } ${themeClasses.secondary} bg-transparent focus:outline-none focus:${themeClasses.accent} transition-all placeholder:opacity-50`}
+        />
+      </div>
     </div>
   )
 }

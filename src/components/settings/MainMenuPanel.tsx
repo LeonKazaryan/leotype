@@ -32,6 +32,8 @@ interface MainMenuPanelProps {
     modeOptions: Record<TestMode, string>
     difficultyOptions: Record<AIDifficulty, string>
     aiPlaceholder: string
+    aiOn: string
+    aiOff: string
   }
   themeClasses: ThemeClasses
 }
@@ -152,6 +154,8 @@ function MainMenuPanel({
           <AiToggle
             label={labels.ai}
             placeholder={labels.aiPlaceholder}
+            statusOn={labels.aiOn}
+            statusOff={labels.aiOff}
             topic={settings.aiTopic}
             onTopicChange={onAiTopicChange}
             themeClasses={themeClasses}

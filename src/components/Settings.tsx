@@ -97,6 +97,8 @@ function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onRequirePvpAuth,
             modeOptions: i18n.settings.modeOptions,
             difficultyOptions: i18n.settings.ai.difficultyOptions,
             aiPlaceholder: i18n.settings.ai.topicPlaceholder,
+            aiOn: i18n.settings.aiToggle.on,
+            aiOff: i18n.settings.aiToggle.off,
           }}
           themeClasses={themeClasses}
         />
