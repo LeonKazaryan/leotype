@@ -133,6 +133,7 @@ export class RankedMatchManager {
       words: match.wordCount,
       characters: match.text.length,
     }
+    player.progress = 1
     player.finishedAt = Date.now()
   }
 
@@ -167,7 +168,7 @@ export class RankedMatchManager {
         participants: {
           create: [
             {
-              userId: p1.userId,
+              userId: p1.isBot ? null : p1.userId,
               opponentId: p2.userId ?? undefined,
               isBot: p1.isBot,
               nickname: p1.nickname,
@@ -183,7 +184,7 @@ export class RankedMatchManager {
               characters: p1.stats.characters,
             },
             {
-              userId: p2.userId,
+              userId: p2.isBot ? null : p2.userId,
               opponentId: p1.userId ?? undefined,
               isBot: p2.isBot,
               nickname: p2.nickname,
@@ -205,7 +206,7 @@ export class RankedMatchManager {
 
     await Promise.all(
       match.players
-        .filter((p) => p.userId)
+        .filter((p) => p.userId && !p.isBot)
         .map((p) =>
           prisma.rankedProfile.upsert({
             where: { userId: p.userId! },

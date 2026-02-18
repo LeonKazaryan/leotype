@@ -143,6 +143,12 @@ export const registerRankedSocket = (io: Server) => {
       const result = await matchManager.finalizeMatch(matchId)
       if (!result) return
 
+      io.to(match.id).emit(rankedSocketEvents.server.matchState, {
+        matchId,
+        stage: 'finished',
+        progress: match.players.map((p) => ({ userId: p.userId, progress: p.progress })),
+      })
+
       match.players.forEach((p) => {
         if (p.userId) {
           activeMatchByUser.delete(p.userId)

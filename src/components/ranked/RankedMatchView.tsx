@@ -76,6 +76,7 @@ function RankedMatchView() {
   }, [input.length, match.stage, match.text.length, finishMatch, liveStats])
 
   const showCountdown = match.stage === 'countdown' && match.countdown > 0
+  const typingDisabled = match.stage !== 'typing'
 
   return (
     <div className="relative w-full max-w-4xl rounded-3xl border px-6 py-5 shadow-2xl backdrop-blur-lg" style={{ background: 'rgba(15,23,42,0.9)' }}>
@@ -117,11 +118,13 @@ function RankedMatchView() {
             ref={inputRef}
             value={input}
             onChange={(e) => {
-              if (match.stage !== 'typing') return
-              setInput(e.target.value)
+              if (typingDisabled) return
+              const next = e.target.value.slice(0, match.text.length)
+              setInput(next)
             }}
             spellCheck={false}
             className="absolute inset-0 opacity-0"
+            disabled={typingDisabled}
           />
         </div>
         <PvpStatsPanel wpm={liveStats.wpm} accuracy={liveStats.accuracy} errors={liveStats.errors} />
