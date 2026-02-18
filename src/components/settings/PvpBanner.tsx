@@ -41,13 +41,19 @@ function PvpBanner({ themeClasses, isLocked, onOpen, onRequireAuth, shakeKey }: 
 
       <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
-          <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${themeClasses.border}`}>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/5">
             <PvpIcon className={themeClasses.primary} size={iconSize} strokeWidth={iconStroke} />
           </div>
-          <div>
-            <p className={`text-lg font-semibold ${themeClasses.primary}`}>{i18n.pvp.card.title}</p>
-            <p className={`text-sm ${themeClasses.secondary} opacity-70`}>{i18n.pvp.card.subtitle}</p>
-            <p className={`text-xs ${themeClasses.secondary} opacity-60`}>{i18n.pvp.card.description}</p>
+          <div className="space-y-1 text-left">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className={`text-xs font-semibold uppercase tracking-[0.3em] ${themeClasses.primary}`}>
+                {i18n.pvp.card.title}
+              </span>
+              <span className={`text-xs ${themeClasses.secondary} opacity-70`}>{i18n.pvp.card.subtitle}</span>
+            </div>
+            <p className={`text-sm ${themeClasses.secondary} opacity-60 max-w-[520px]`}>
+              {i18n.pvp.card.description}
+            </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
