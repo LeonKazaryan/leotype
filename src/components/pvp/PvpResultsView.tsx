@@ -27,7 +27,7 @@ function PvpResultsView() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      <div className={`absolute inset-0 ${themeClasses.overlay} backdrop-blur-md`} />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -28,7 +28,7 @@ function PvpAuthModal({ open, onClose, onLogin, onSignup }: PvpAuthModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black"
+            className={`absolute inset-0 ${themeClasses.overlayPlain}`}
             onClick={onClose}
           />
           <motion.div

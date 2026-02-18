@@ -144,7 +144,7 @@ function RegisterModal({ open, onClose, onAuthSuccess, initialMode }: RegisterMo
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black"
+            className={`absolute inset-0 ${themeClasses.overlayPlain}`}
             onClick={onClose}
           />
 

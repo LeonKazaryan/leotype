@@ -14,6 +14,7 @@ export function getThemeClasses(theme: Theme) {
       border: 'border-gray-700',
       card: 'bg-gray-800',
       overlay: 'bg-black/70 backdrop-blur-md',
+      overlayPlain: 'bg-black',
     },
     light: {
       bg: 'bg-gray-50',
@@ -27,6 +28,7 @@ export function getThemeClasses(theme: Theme) {
       border: 'border-gray-300',
       card: 'bg-white',
       overlay: 'bg-white/70 backdrop-blur-md',
+      overlayPlain: 'bg-white',
     },
     neon: {
       bg: 'bg-black',
@@ -40,6 +42,7 @@ export function getThemeClasses(theme: Theme) {
       border: 'border-cyan-500',
       card: 'bg-gray-950',
       overlay: 'bg-black/80 backdrop-blur-lg',
+      overlayPlain: 'bg-black',
     },
     ocean: {
       bg: 'bg-slate-900',
@@ -53,6 +56,7 @@ export function getThemeClasses(theme: Theme) {
       border: 'border-teal-500',
       card: 'bg-slate-800',
       overlay: 'bg-slate-950/70 backdrop-blur-lg',
+      overlayPlain: 'bg-slate-950',
     },
     forest: {
       bg: 'bg-green-950',
@@ -66,6 +70,7 @@ export function getThemeClasses(theme: Theme) {
       border: 'border-green-500',
       card: 'bg-green-900',
       overlay: 'bg-green-950/75 backdrop-blur-lg',
+      overlayPlain: 'bg-green-950',
     },
   }
   

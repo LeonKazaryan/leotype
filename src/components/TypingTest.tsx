@@ -136,7 +136,7 @@ function TypingTest() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-80 backdrop-blur-sm rounded-2xl z-20"
+            className={`absolute inset-0 flex flex-col items-center justify-center ${themeClasses.overlay} backdrop-blur-sm rounded-2xl z-20`}
           >
             <motion.div
               animate={{ rotate: 360 }}

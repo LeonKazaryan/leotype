@@ -140,7 +140,7 @@ function MemoryGame() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: memoryConfig.ui.animation.overlayFadeDuration }}
-            className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            className={`absolute inset-0 flex items-center justify-center ${themeClasses.overlay} backdrop-blur-sm opacity-60`}
           >
             <motion.div
               initial={{ scale: memoryConfig.ui.animation.overlayScale }}
@@ -161,7 +161,7 @@ function MemoryGame() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: memoryConfig.ui.animation.overlayFadeDuration }}
-            className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md"
+            className={`absolute inset-0 flex flex-col items-center justify-center ${themeClasses.overlay} backdrop-blur-md opacity-90`}
           >
             <motion.div
               animate={{ rotate: 360 }}
