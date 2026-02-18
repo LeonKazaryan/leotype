@@ -26,6 +26,9 @@ export interface RankedOpponent {
   nickname: string
   rating: number
   isBot: boolean
+  expectedTimeSec?: number
+  expectedWpm?: number
+  expectedAccuracy?: number
 }
 
 export interface RankedMatchState {
@@ -48,6 +51,14 @@ export interface RankedResultSummary {
   ratingAfter: number
   delta: number
   opponent: string
+  opponentStats?: {
+    wpm: number
+    accuracy: number
+    errors: number
+    timeSec: number
+    words: number
+    characters: number
+  }
   stats: {
     wpm: number
     accuracy: number

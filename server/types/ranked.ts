@@ -19,6 +19,7 @@ export interface RankedQueueEntry {
   joinedAt: number
   language: 'ru' | 'en'
   difficulty: 'easy' | 'medium' | 'hard'
+  botProfile?: { wpm: number; accuracy: number }
 }
 
 export interface RankedMatchPlayerSnapshot {
@@ -27,6 +28,7 @@ export interface RankedMatchPlayerSnapshot {
   rating: number
   isBot: boolean
   opponentId?: string | null
+  botProfile?: { wpm: number; accuracy: number }
 }
 
 export interface RankedMatchSnapshot {

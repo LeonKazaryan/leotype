@@ -66,6 +66,7 @@ export class RankedMatchManager {
         progress: 0,
         isBot: player.isBot,
         opponentId: player.opponentId ?? null,
+        botProfile: player.botProfile,
       })),
     }
 

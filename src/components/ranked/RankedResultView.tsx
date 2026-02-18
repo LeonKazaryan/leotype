@@ -33,6 +33,23 @@ function RankedResultView() {
           <span className={themeClasses.primary}>{result.opponent}</span>
         </div>
 
+        {result.opponentStats && (
+          <div className={`rounded-2xl border ${themeClasses.border} ${themeClasses.card} p-4 text-sm`}>
+            <div className="flex justify-between">
+              <span className={themeClasses.secondary}>Opponent WPM</span>
+              <span className={themeClasses.primary}>{result.opponentStats.wpm}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className={themeClasses.secondary}>Opponent Accuracy</span>
+              <span className={themeClasses.primary}>{result.opponentStats.accuracy}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className={themeClasses.secondary}>Opponent Time</span>
+              <span className={themeClasses.primary}>{result.opponentStats.timeSec}s</span>
+            </div>
+          </div>
+        )}
+
         <div className={`rounded-2xl border ${themeClasses.border} ${themeClasses.card} p-4 text-sm`}>
           <div className="flex justify-between">
             <span className={themeClasses.secondary}>WPM</span>

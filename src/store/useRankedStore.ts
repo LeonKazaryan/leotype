@@ -15,6 +15,9 @@ type RankedStore = {
   match: RankedMatchState
   result: RankedResultSummary | null
   countdownTimer: number | null
+  opponentProgressTimer: number | null
+  opponentSimStart: number | null
+  opponentSimTotalMs: number | null
   openOverlay: (user: AuthUser) => void
   closeOverlay: () => void
   loadProfile: () => Promise<void>
@@ -52,6 +55,9 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
   match: defaultMatch,
   result: null,
   countdownTimer: null,
+  opponentProgressTimer: null,
+  opponentSimStart: null,
+  opponentSimTotalMs: null,
 
   openOverlay: (user) => {
     connectRealtimeSocket() || connectPvpSocket()
@@ -62,6 +68,14 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
       if (timer) {
         window.clearInterval(timer)
         set({ countdownTimer: null })
+      }
+    }
+
+    const clearOpponentTimer = () => {
+      const timer = get().opponentProgressTimer
+      if (timer) {
+        cancelAnimationFrame(timer)
+        set({ opponentProgressTimer: null, opponentSimStart: null, opponentSimTotalMs: null })
       }
     }
 
@@ -97,6 +111,7 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
     onRanked(rankedSocketEvents.server.matchState, (payload: any) => {
       const current = get().match
       const countdown = computeCountdown(payload.startAt ?? current.startAt)
+      const opponent = get().opponent
       set({
         phase: payload.stage === 'typing' ? 'match' : 'countdown',
         match: {
@@ -114,6 +129,7 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
       })
 
       clearCountdown()
+      clearOpponentTimer()
       if (payload.stage === 'countdown') {
         const timer = window.setInterval(() => {
           set((state) => ({
@@ -125,10 +141,38 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
         }, rankedConfig.match.countdownTickMs)
         set({ countdownTimer: timer })
       }
+
+      if (payload.stage === 'typing' && opponent?.isBot && opponent.expectedTimeSec && current.startAt) {
+        const startAt = current.startAt
+        const totalMs = opponent.expectedTimeSec * 1000
+        const simStart = performance.now()
+        const loop = (tickStart: number) => {
+          const elapsed = Math.max(0, performance.now() - simStart + Math.max(0, Date.now() - startAt))
+          const target = Math.min(1, elapsed / totalMs)
+          set((state) => {
+            const nextProgress = Math.max(state.match.progress.opponent, target)
+            return {
+              match: {
+                ...state.match,
+                progress: { ...state.match.progress, opponent: nextProgress },
+              },
+            }
+          })
+          if (target < 1) {
+            const id = requestAnimationFrame(loop)
+            set({ opponentProgressTimer: id })
+          } else {
+            set({ opponentProgressTimer: null })
+          }
+        }
+        const id = requestAnimationFrame(loop)
+        set({ opponentProgressTimer: id, opponentSimStart: simStart, opponentSimTotalMs: totalMs })
+      }
     })
 
     onRanked(rankedSocketEvents.server.result, (payload: RankedResultSummary) => {
       clearCountdown()
+      clearOpponentTimer()
       set({
         phase: 'result',
         result: payload,
@@ -144,7 +188,9 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
 
   closeOverlay: () => {
     const timer = get().countdownTimer
+    const oppTimer = get().opponentProgressTimer
     if (timer) window.clearInterval(timer)
+    if (oppTimer) cancelAnimationFrame(oppTimer)
     set({
       overlayOpen: false,
       phase: 'idle',
@@ -153,6 +199,9 @@ export const useRankedStore = create<RankedStore>((set, get) => ({
       match: defaultMatch,
       result: null,
       countdownTimer: null,
+      opponentProgressTimer: null,
+      opponentSimStart: null,
+      opponentSimTotalMs: null,
     })
     emitRanked(rankedSocketEvents.client.cancelQueue)
   },

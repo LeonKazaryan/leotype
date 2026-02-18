@@ -151,6 +151,7 @@ export const registerRankedSocket = (io: Server) => {
 
       match.players.forEach((p) => {
         if (p.userId) {
+          const opponent = match.players.find((o) => o !== p)
           activeMatchByUser.delete(p.userId)
           clearStatusTimer(p.userId)
           const client = findSocketByUserId(io, p.userId)
@@ -159,7 +160,8 @@ export const registerRankedSocket = (io: Server) => {
             ratingBefore: p.ratingBefore,
             ratingAfter: p.ratingAfter,
             delta: p.delta,
-            opponent: match.players.find((o) => o !== p)?.nickname,
+            opponent: opponent?.nickname,
+            opponentStats: opponent?.stats,
             stats: p.stats,
           })
         }
@@ -183,14 +185,15 @@ const createBotEntry = (entry: RankedQueueEntry): RankedQueueEntry => {
     joinedAt: Date.now(),
     language: entry.language,
     difficulty: entry.difficulty,
+    botProfile: profile,
   }
 }
 
 const startRankedMatch = async (io: Server, a: RankedQueueEntry, b: RankedQueueEntry) => {
   const match = await matchManager.createMatch({
     players: [
-      { userId: a.userId, nickname: a.nickname, rating: a.rating, isBot: a.userId.startsWith('bot_') },
-      { userId: b.userId, nickname: b.nickname, rating: b.rating, isBot: b.userId.startsWith('bot_') },
+      { userId: a.userId, nickname: a.nickname, rating: a.rating, isBot: a.userId.startsWith('bot_'), botProfile: a.botProfile },
+      { userId: b.userId, nickname: b.nickname, rating: b.rating, isBot: b.userId.startsWith('bot_'), botProfile: b.botProfile },
     ],
     wordCount: pvpConfig.defaults.wordCount,
     difficulty: pvpConfig.defaults.difficulty as 'easy' | 'medium' | 'hard',
@@ -201,12 +204,19 @@ const startRankedMatch = async (io: Server, a: RankedQueueEntry, b: RankedQueueE
   sockets.forEach((sock) => {
     sock.join(match.id)
     activeMatchByUser.set(sock.data.userId as string, match.id)
+    const isBotOpponent = sock.data.userId === a.userId ? b.userId.startsWith('bot_') : a.userId.startsWith('bot_')
+    const botProfile = sock.data.userId === a.userId ? b.botProfile : a.botProfile
+    const expectedTimeSec = botProfile ? Math.max(1, Math.round((match.wordCount / botProfile.wpm) * 60)) : undefined
+
     sock.emit(rankedSocketEvents.server.matchFound, {
       matchId: match.id,
       opponent: {
         nickname: sock.data.userId === a.userId ? b.nickname : a.nickname,
         rating: sock.data.userId === a.userId ? b.rating : a.rating,
-        isBot: sock.data.userId === a.userId ? b.userId.startsWith('bot_') : a.userId.startsWith('bot_'),
+        isBot: isBotOpponent,
+        expectedTimeSec,
+        expectedWpm: botProfile?.wpm,
+        expectedAccuracy: botProfile?.accuracy,
       },
       startAt: match.startAt,
       text: match.text,
