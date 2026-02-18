@@ -58,11 +58,22 @@ async function generateTextWithAI(
             throw new Error('No text generated')
         }
 
+        // Normalize whitespace and hard-cap word count for words/time modes
+        const normalized = generatedText.replace(/\s+/g, ' ').trim()
+        const shouldTrimByCount = mode === 'words' || mode === 'time'
+        const safeText = shouldTrimByCount
+            ? normalized
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, count)
+                .join(' ')
+            : normalized
+
         if (import.meta.env.DEV) {
-            console.log('✅ Generated text:', generatedText)
+            console.log('✅ Generated text:', safeText)
         }
 
-        return generatedText
+        return safeText
     } catch (error) {
         if (error instanceof Error) {
             if (error.name === 'AbortError') {
