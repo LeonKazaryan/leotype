@@ -19,3 +19,19 @@ export const pvpSocketEvents = {
     error: 'pvp:error',
   },
 } as const
+
+export const rankedSocketEvents = {
+  client: {
+    joinQueue: 'ranked:queue:join',
+    cancelQueue: 'ranked:queue:cancel',
+    progress: 'ranked:progress',
+    finish: 'ranked:finish',
+  },
+  server: {
+    searchStatus: 'ranked:search:status',
+    matchFound: 'ranked:match:found',
+    matchState: 'ranked:match:state',
+    result: 'ranked:result',
+    error: 'ranked:error',
+  },
+} as const

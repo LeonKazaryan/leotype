@@ -73,6 +73,46 @@
     to { transform: translateY(-1px) rotate(0.5deg); }
 }
 
+.ranked-scan {
+    position: relative;
+    border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: radial-gradient(circle at center, rgba(255,255,255,0.05), transparent 60%);
+    overflow: hidden;
+}
+
+.ranked-scan::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 2px solid transparent;
+    border-top-color: rgba(59,130,246,0.8);
+    border-right-color: rgba(59,130,246,0.6);
+    filter: drop-shadow(0 0 6px rgba(59,130,246,0.7));
+    animation: ranked-sweep 1.8s linear infinite;
+}
+
+.ranked-scan::before {
+    content: '';
+    position: absolute;
+    inset: 12%;
+    border-radius: inherit;
+    background: radial-gradient(circle, rgba(59,130,246,0.25), transparent 60%);
+    filter: blur(8px);
+    animation: ranked-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes ranked-sweep {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes ranked-pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.04); }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .caret-blink,
     .glitch-shift,

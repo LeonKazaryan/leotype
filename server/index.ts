@@ -13,6 +13,8 @@ import { languageConfig } from './config/language.js'
 import { authErrorCodes } from './config/errorCodes.js'
 import { authConfig } from './config/auth.js'
 import { registerPvpSocket } from './services/pvpSocketServer.js'
+import { registerRankedSocket } from './services/rankedSocketServer.js'
+import { rankedConfig } from './config/ranked.js'
 import { checkXaiApiKey, generateAiText } from './services/aiTextService.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -139,7 +141,17 @@ app.post('/api/auth/register', async (req, res) => {
             expiresIn: TOKEN_EXPIRES_IN,
         })
 
-        return res.status(201).json({ token, user })
+        const rankedProfile = await prisma.rankedProfile.upsert({
+            where: { userId: user.id },
+            update: {},
+            create: {
+                userId: user.id,
+                rating: rankedConfig.rating.start,
+            },
+            select: { rating: true },
+        })
+
+        return res.status(201).json({ token, user: { ...user, rankedRating: rankedProfile.rating } })
     } catch (error) {
         console.error('Register error:', error)
         return res.status(500).json({ error: 'Server error', code: authErrorCodes.SERVER_ERROR })
@@ -178,7 +190,15 @@ app.post('/api/auth/login', async (req, res) => {
             expiresIn: TOKEN_EXPIRES_IN,
         })
 
-        return res.status(200).json({ token, user: { id: user.id, username: user.username } })
+        const rankedProfile = await prisma.rankedProfile.findUnique({
+            where: { userId: user.id },
+            select: { rating: true },
+        })
+
+        return res.status(200).json({
+            token,
+            user: { id: user.id, username: user.username, rankedRating: rankedProfile?.rating ?? rankedConfig.rating.start },
+        })
     } catch (error) {
         console.error('Login error:', error)
         return res.status(500).json({ error: 'Server error', code: authErrorCodes.SERVER_ERROR })
@@ -219,6 +239,39 @@ app.post('/api/user/stats', async (req, res) => {
         console.error('Update stats error:', error)
         return res.status(500).json({ error: 'Server error' })
     }
+})
+
+app.get('/api/ranked/profile', async (req, res) => {
+    const auth = getUserIdFromRequest(req)
+    if (!auth.userId) {
+        return res.status(401).json({ error: 'Unauthorized', code: auth.error || 'unauthorized' })
+    }
+
+    const profile = await prisma.rankedProfile.upsert({
+        where: { userId: auth.userId },
+        update: {},
+        create: { userId: auth.userId, rating: rankedConfig.rating.start },
+        select: {
+            rating: true,
+            wins: true,
+            losses: true,
+            racesPlayed: true,
+            sumWpm: true,
+            sumAccuracy: true,
+        },
+    })
+
+    const winRate = profile.racesPlayed > 0 ? Math.round((profile.wins / profile.racesPlayed) * 100) : 0
+
+    return res.json({
+        rating: profile.rating,
+        wins: profile.wins,
+        losses: profile.losses,
+        racesPlayed: profile.racesPlayed,
+        avgWpm: profile.racesPlayed > 0 ? Math.round(profile.sumWpm / profile.racesPlayed) : 0,
+        avgAccuracy: profile.racesPlayed > 0 ? Math.round(profile.sumAccuracy / profile.racesPlayed) : 0,
+        winRate,
+    })
 })
 
 app.post('/api/generate-text', async (req: express.Request, res: express.Response) => {
@@ -294,6 +347,7 @@ const io = new Server(httpServer, {
 })
 
 registerPvpSocket(io)
+registerRankedSocket(io)
 
 httpServer.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`)

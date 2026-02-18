@@ -4,18 +4,20 @@ import { useMemoryStore } from '../store/useMemoryStore'
 import { settingsOptions } from '../config/settings'
 import { getThemeClasses } from '../utils/themes'
 import { useI18n } from '../hooks/useI18n'
-import PvpBanner from './settings/PvpBanner'
+import RankedBanner from './settings/RankedBanner'
+import { useRankedStore } from '../store/useRankedStore'
 import MainMenuPanel from './settings/MainMenuPanel'
 
 interface SettingsProps {
   isAuthenticated: boolean
   onRequireAuth: () => void
   onOpenPvp: () => void
+  onOpenRanked: () => void
   onRequirePvpAuth: () => void
   pvpShakeKey: number
 }
 
-function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onRequirePvpAuth, pvpShakeKey }: SettingsProps) {
+function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onOpenRanked, onRequirePvpAuth, pvpShakeKey }: SettingsProps) {
   const settings = useTypingStore((state) => state.settings)
   const setMode = useTypingStore((state) => state.setMode)
   const setTime = useTypingStore((state) => state.setTime)
@@ -33,6 +35,8 @@ function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onRequirePvpAuth,
   const isMemoryMode = settings.mode === 'memory'
   const isMemoryLocked = !isAuthenticated
   const isPvpLocked = !isAuthenticated
+  const rankedProfile = useRankedStore((state) => state.profile)
+  const loadRankedProfile = useRankedStore((state) => state.loadProfile)
   const isActionBusy = isMemoryMode ? isMemoryLoading : isGeneratingAI
   const aiHintText = isMemoryMode ? i18n.settings.ai.hintMemory : i18n.settings.ai.hint
 
@@ -63,12 +67,20 @@ function Settings({ isAuthenticated, onRequireAuth, onOpenPvp, onRequirePvpAuth,
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
       <div className="space-y-6">
-        <PvpBanner
+        <RankedBanner
           themeClasses={themeClasses}
           isLocked={isPvpLocked}
-          onOpen={onOpenPvp}
+          onOpenCasual={onOpenPvp}
+          onOpenRanked={() => {
+            if (!isAuthenticated) {
+              onRequirePvpAuth()
+              return
+            }
+            loadRankedProfile()
+            onOpenRanked()
+          }}
           onRequireAuth={onRequirePvpAuth}
-          shakeKey={pvpShakeKey}
+          rating={rankedProfile?.rating ?? 1000}
         />
 
         <MainMenuPanel

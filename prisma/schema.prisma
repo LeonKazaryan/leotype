@@ -17,6 +17,62 @@ model User {
   role         String   @default("user")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  rankedProfile RankedProfile?
+  rankedMatches RankedParticipant[]
+}
+
+model RankedProfile {
+  userId       String   @id
+  rating       Int      @default(1000)
+  wins         Int      @default(0)
+  losses       Int      @default(0)
+  racesPlayed  Int      @default(0)
+  sumWpm       Int      @default(0)
+  sumAccuracy  Int      @default(0)
+  lastPlayedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RankedMatch {
+  id          String   @id @default(cuid())
+  startedAt   DateTime @default(now())
+  finishedAt  DateTime?
+  language    String
+  wordCount   Int
+  difficulty  String
+
+  participants RankedParticipant[]
+}
+
+model RankedParticipant {
+  id            String   @id @default(cuid())
+  matchId       String
+  userId        String?
+  opponentId    String?
+  isBot         Boolean  @default(false)
+  nickname      String
+  ratingBefore  Int
+  ratingAfter   Int
+  delta         Int
+  result        RankedResult
+  wpm           Int
+  accuracy      Int
+  errors        Int
+  timeSec       Int
+  words         Int
+  characters    Int
+
+  match RankedMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum RankedResult {
+  WIN
+  LOSS
+  DRAW
 }
 
 model DictionaryEntry { 

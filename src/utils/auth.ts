@@ -1,6 +1,7 @@
 export type AuthUser = {
   id: string
   username: string
+  rankedRating?: number
 }
 
 const STORAGE_TOKEN_KEY = 'leotype_token'

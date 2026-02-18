@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client'
 import { pvpRealtimeConfig } from '../config/pvpRealtime'
-import { pvpSocketEvents } from '../config/pvpSocket'
+import { pvpSocketEvents, rankedSocketEvents } from '../config/pvpSocket'
 import { getStoredToken } from '../utils/auth'
 
 export type PvpSocketStatus = 'disconnected' | 'connecting' | 'connected'
@@ -29,6 +29,9 @@ export const connectPvpSocket = () => {
   return socket
 }
 
+// alias for ranked usage to avoid duplicate connections
+export const connectRealtimeSocket = connectPvpSocket
+
 export const disconnectPvpSocket = () => {
   if (socket) {
     socket.removeAllListeners()
@@ -37,12 +40,24 @@ export const disconnectPvpSocket = () => {
   }
 }
 
+export const disconnectRealtimeSocket = disconnectPvpSocket
+
 export const emitPvp = <T>(event: string, payload?: T) => {
   if (!socket) return
   socket.emit(event, payload)
 }
 
+export const emitRanked = <T>(event: string, payload?: T) => {
+  if (!socket) return
+  socket.emit(event, payload)
+}
+
 export const onPvp = <T>(event: string, handler: (payload: T) => void) => {
+  if (!socket) return
+  socket.on(event, handler as (...args: unknown[]) => void)
+}
+
+export const onRanked = <T>(event: string, handler: (payload: T) => void) => {
   if (!socket) return
   socket.on(event, handler as (...args: unknown[]) => void)
 }
@@ -56,6 +71,12 @@ export const offPvp = <T>(event: string, handler?: (payload: T) => void) => {
   }
 }
 
+export const offRanked = offPvp
+
 export const pvpSocketClient = {
   events: pvpSocketEvents,
+}
+
+export const rankedSocketClient = {
+  events: rankedSocketEvents,
 }

@@ -11,9 +11,11 @@ import DictionaryUnavailableModal from './components/DictionaryUnavailableModal'
 import MemoryGame from './components/memory/MemoryGame'
 import PvpAuthModal from './components/pvp/PvpAuthModal'
 import PvpOverlay from './components/pvp/PvpOverlay'
+import RankedOverlay from './components/ranked/RankedOverlay'
 import { AuthUser, clearStoredAuth, getStoredUser } from './utils/auth'
 import { getThemeClasses } from './utils/themes'
 import { usePvpStore } from './store/usePvpStore'
+import { useRankedStore } from './store/useRankedStore'
 
 function App() {
   const theme = useTypingStore((state) => state.settings.theme)
@@ -31,7 +33,11 @@ function App() {
   const openPvpLobby = usePvpStore((state) => state.openLobby)
   const closePvpLobby = usePvpStore((state) => state.closeLobby)
   const disconnectPvpSocket = usePvpStore((state) => state.disconnectSocket)
-  
+  const openRankedOverlay = useRankedStore((state) => state.openOverlay)
+  const closeRankedOverlay = useRankedStore((state) => state.closeOverlay)
+  const loadRankedProfile = useRankedStore((state) => state.loadProfile)
+  const joinRankedQueue = useRankedStore((state) => state.joinQueue)
+
   useEffect(() => {
     document.body.className = themeClasses.body
   }, [themeClasses])
@@ -39,6 +45,12 @@ function App() {
   useEffect(() => {
     setCurrentUser(getStoredUser())
   }, [])
+
+  useEffect(() => {
+    if (currentUser) {
+      loadRankedProfile()
+    }
+  }, [currentUser, loadRankedProfile])
   
   return (
     <div className={`min-h-screen transition-colors duration-500 ${themeClasses.bg} relative`}>
@@ -101,6 +113,11 @@ function App() {
                 if (!currentUser) return
                 openPvpLobby(currentUser)
               }}
+              onOpenRanked={() => {
+                if (!currentUser) return
+                openRankedOverlay(currentUser)
+                joinRankedQueue({ language: useTypingStore.getState().settings.language })
+              }}
               onRequirePvpAuth={() => {
                 setPvpShakeKey((prev) => prev + 1)
                 setPvpAuthOpen(true)
@@ -122,6 +139,7 @@ function App() {
         </div>
       </div>
       <PvpOverlay onCloseLobby={closePvpLobby} />
+      <RankedOverlay />
     </div>
   )
 }
